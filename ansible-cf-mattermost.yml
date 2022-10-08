@@ -128,7 +128,7 @@ Parameters:
     Default: 5.7.12
   InstanceClass:
     Type: String
-    Default: db.t2.small
+    Default: db.t2.micro
     AllowedValues:
     - db.t2.micro
     # - db.t2.small
