@@ -1,4 +1,10 @@
-test
-test
-ssssss
-aaaa
+---
+- name: deploy mattermost server
+  remote_user: ec2-user
+  hosts: all # allにしたら動いた。
+  become: yes
+  roles:
+    - role: common
+      tags: common
+    #- role: prometheus
+    #  tags: prometheus
