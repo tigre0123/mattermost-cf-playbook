@@ -1,0 +1,5 @@
+[mattermost]
+ec2-52-198-103-80.ap-northeast-1.compute.amazonaws.com
+
+[prod:children]
+mattermost

@@ -1,0 +1,8 @@
+---
+- name: yum install multi-list
+  yum:
+    name:
+      - git
+      - nc
+    state: latest
+    # state: present
