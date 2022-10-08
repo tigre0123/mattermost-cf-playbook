@@ -1,10 +1,620 @@
----
-- name: deploy mattermost server
-  remote_user: ec2-user
-  hosts: all # allにしたら動いた。
-  become: yes
-  roles:
-    - role: common
-      tags: common
-    #- role: prometheus
-    #  tags: prometheus
+# https://github.com/aws-samples/aws-systems-manager-cloudformation-samples/blob/main/cloudformation-samples/AnsibleAssociation.yaml
+AWSTemplateFormatVersion: "2010-09-09" # 必須らしい
+Description: 
+  VPC and Subnet Create and Deploy EC2 Linux Instance for mattermost study
+
+Metadata: # 入力パラメータが多いとき、Metadataを使って入力しやすいように順番等を制御する。設定しなくても動作可能
+  "AWS::CloudFormation::Interface":  # 入力パラメータのグループ化と順序が指定
+    ParameterGroups: 
+      - Label: 
+          default: "Project Name Prefix" # 使ってみて確認
+        Parameters: 
+          - PJPrefix # 入力項目
+      - Label: 
+          default: "Network Configuration"
+        Parameters: 
+          - VPCCIDR  # 入力項目、VPCのCIDRを設定
+          - PublicSubnetACIDR # 入力項目、PublicSubnetAのCIDRを設定
+          - PublicSubnetCCIDR # 入力項目、PublicSubnetCのCIDRを設定（今回はネットワーク作るだけ）
+          - PrivateSubnetACIDR # 入力項目、PrivateSubnetAのCIDRを設定（今回はネットワーク作るだけ）
+          - PrivateSubnetCCIDR # 入力項目、PrivateSubnetCのCIDRを設定（今回はネットワーク作るだけ）
+          - KeyName # 秘密鍵
+          - MyIP # 自宅のグローバルIP
+          - Environment # prd or stg
+          - LatestAmiId # amazon linux の最新を使う設定です。
+          - GitHubOwner
+          - GitHubRepo
+          - GitHubBranch
+
+    ParameterLabels: 
+      VPCCIDR: # Parameters の項目と一致させる
+        default: "VPC CIDR" # 入力項目の上に表示されるラベル名だと思われる
+      PublicSubnetACIDR: 
+        default: "PublicSubnetA CIDR"
+      PublicSubnetCCIDR: 
+        default: "PublicSubnetC CIDR"
+      PrivateSubnetACIDR: 
+        default: "PrivateSubnetA CIDR"
+      PrivateSubnetCCIDR: 
+        default: "PrivateSubnetC CIDR"
+      KeyName:
+        default: "rsa"
+      MyIP:
+        default: "HomeGlobalIp CIDR"
+      Environment:
+        default: "Environment"
+      LatestAmiId:
+        default: "ec2 machine image"
+      GitHubOwner:
+        default: "ansible playbook GitHubOwner"
+      GitHubRepo:
+        default: "ansible playbook GitHubRepo"
+      GitHubBranch:
+        default: "ansible playbook GitHubBranch"
+# ------------------------------------------------------------#
+# Input Parameters
+# ------------------------------------------------------------# 
+# 入力パラメータの型や、デフォルト値の設定と思われる
+Parameters:
+  PJPrefix: # Parametersの項目と一致させる　　VPC、サブネット名の頭に付く文字列
+    Type: String
+    Default: "mattermost-study"
+
+  VPCCIDR:
+    Type: String
+    Default: "10.1.0.0/16" # デフォルト値  利用するIPアドレスの範囲を設定、10.0.0.0 - 10.0.255.255、IT総数65,536
+
+  PublicSubnetACIDR: # 今回はここだけ使う
+    Type: String
+    Default: "10.1.10.0/24" # デフォルト値 10.1.10.0 - 10.1.10.255
+
+  PublicSubnetCCIDR:
+    Type: String
+    Default: "10.1.20.0/24" # デフォルト値 10.1.20.0 - 10.1.20.255
+
+  PrivateSubnetACIDR:
+    Type: String
+    Default: "10.1.100.0/24" # デフォルト値 10.1.100.0 - 10.1.100.255
+
+  PrivateSubnetCCIDR:
+    Type: String
+    Default: "10.1.200.0/24" # デフォルト値 10.1.200.0 - 10.1.200.255
+
+  KeyName: # 自分の秘密鍵を画面で選択することになる.対応した公開鍵がサーバに配布される
+    Description: The EC2 Key Pair to allow SSH access to the instance
+    Type: "AWS::EC2::KeyPair::KeyName"
+    Default: "rsa"
+
+  MyIP: # awsへアクセスするIPを設定
+    Description: IP address allowed to access EC2
+    Default: "106.72.134.33/32" # デフォルト値
+    Type: String
+
+  Environment: # 環境によってパラメータを変えたいときに利用する。
+    Description: Type of this environment.
+    Type: String
+    Default: prd # productionの略、本テンプレートではprdとして扱う。stgは定義していない
+    AllowedValues:
+      - prd 
+      - stg
+  LatestAmiId:
+    Description: ec2 machine image.
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+
+  GitHubOwner:
+    Description: ansible playbook GitHubOwner
+    Type: String
+    Default: "tmoritoki0227"
+
+  GitHubRepo:
+    Description: ansible playbook GitHubRepo
+    Type: String
+    Default: "mattermost-cf-playbook"
+
+  GitHubBranch:
+    Description: ansible playbook GitHubBranch
+    Type: String
+    Default: "main"
+
+  DBMasterUserName:
+    Type: String
+    Default: admin
+  DBMasterUserPassword:
+    Type: String
+    Default: adminadmin
+  EngineVersion:
+    Type: String
+    Default: 5.7.12
+
+Mappings:
+  # https://dev.classmethod.jp/articles/cloudformation-ec2-build/
+  prd:
+    PublicSubnet1a: { ID: subnet-xxxxxx }
+
+    OSSettings:
+      Locale: ja_JP.utf8
+      TimeZone: "Asia/Tokyo"
+    mattermostEC2:
+      HostName: mattermost.host
+      PrivateIpAddress: 10.1.10.100
+      InstanceType: t2.micro
+      AmiId: ami-08a8688fb7eacb171 # Amazon Linux 2 AMI (HVM) - Kernel 5.10, SSD Volume Type
+      Playbook: "mattermost.yml"
+
+
+Resources: 
+# ------------------------------------------------------------#
+#  VPC
+# ------------------------------------------------------------#
+# VPC Create
+  VPC: # VPCの論理名
+    Type: "AWS::EC2::VPC"
+    Properties: 
+      CidrBlock: !Ref VPCCIDR # UIの入力パラメータから受け取った値
+      EnableDnsSupport: "true"
+      EnableDnsHostnames: "true"
+      InstanceTenancy: default # VPC 内に起動されるインスタンスの許可されているテナンシー（とりあえずデフォルトで、結局何がが許可されているのか不明である
+      Tags: 
+        - Key: Name # 画面上どこの表示になるか後で確認
+          Value: !Sub "${PJPrefix}-vpc"
+
+# InternetGateway Create
+  InternetGateway: 
+    Type: "AWS::EC2::InternetGateway"
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${PJPrefix}-igw" # 画面上どこの表示になるか後で確認
+
+# IGW Attach
+  InternetGatewayAttachment: 
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties: 
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC 
+
+# ------------------------------------------------------------#
+#  Subnet
+# ------------------------------------------------------------#          
+# Public SubnetA Create（今回はここだけにインスタンス設置）
+  PublicSubnetA: 
+    Type: "AWS::EC2::Subnet"
+    Properties: 
+      # AvailabilityZone: "ap-northeast-1a"
+      AvailabilityZone: !Select
+        - 0 # 配列の番号。配列[ap-northeast-1a, ap-northeast-1c, ap-northeast-1d]　らしい
+        - Fn::GetAZs: !Ref AWS::Region
+      CidrBlock: !Ref PublicSubnetACIDR # ネットワークの範囲、UIの入力パラメータから受け取った値
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${PJPrefix}-public-subnet-a" # 画面上どこの表示になるか後で確認
+
+# Public SubnetC Create
+  PublicSubnetC: 
+    Type: "AWS::EC2::Subnet"
+    Properties: 
+      # AvailabilityZone: "ap-northeast-1c"
+      AvailabilityZone: !Select
+        - 1 # 配列の番号。配列[ap-northeast-1a, ap-northeast-1c, ap-northeast-1d]　らしい
+        - Fn::GetAZs: !Ref AWS::Region
+      CidrBlock: !Ref PublicSubnetCCIDR # ネットワークの範囲、UIの入力パラメータから受け取った値
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${PJPrefix}-public-subnet-c"
+
+# Private SubnetA Create
+  PrivateSubnetA: 
+    Type: "AWS::EC2::Subnet"
+    Properties: 
+      # AvailabilityZone: "ap-northeast-1a"
+      AvailabilityZone: !Select
+        - 0 # 配列の番号。配列[ap-northeast-1a, ap-northeast-1c, ap-northeast-1d]　らしい
+        - Fn::GetAZs: !Ref AWS::Region
+      CidrBlock: !Ref PrivateSubnetACIDR # ネットワークの範囲、UIの入力パラメータから受け取った値
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${PJPrefix}-private-subnet-a"
+
+# Private SubnetC Create
+  PrivateSubnetC: 
+    Type: "AWS::EC2::Subnet"
+    Properties: 
+      # AvailabilityZone: "ap-northeast-1c"
+      AvailabilityZone: !Select
+        - 1 # 配列の番号。配列[ap-northeast-1a, ap-northeast-1c, ap-northeast-1d]　らしい
+        - Fn::GetAZs: !Ref AWS::Region
+      CidrBlock: !Ref PrivateSubnetCCIDR # ネットワークの範囲、UIの入力パラメータから受け取った値
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${PJPrefix}-private-subnet-c"
+
+# ------------------------------------------------------------#
+#  RouteTable
+# ------------------------------------------------------------#
+# 全部同じ設定    
+# Public RouteTableA Create
+  PublicRouteTableA: 
+    Type: "AWS::EC2::RouteTable"
+    Properties: 
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${PJPrefix}-public-route-a"
+
+# Public RouteTableC Create
+  PublicRouteTableC: 
+    Type: "AWS::EC2::RouteTable"
+    Properties: 
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${PJPrefix}-public-route-c"
+
+# Private RouteTableA Create
+  PrivateRouteTableA: 
+    Type: "AWS::EC2::RouteTable"
+    Properties: 
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${PJPrefix}-private-route-a"
+
+# Private RouteTableC Create
+  PrivateRouteTableC: 
+    Type: "AWS::EC2::RouteTable"
+    Properties: 
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${PJPrefix}-private-route-c"
+
+# ------------------------------------------------------------#
+# Routing
+# ------------------------------------------------------------#
+# パブリックサブネットだけ、インターネット繋がるようにする設定
+# PublicRouteA Create
+  PublicRouteA: 
+    Type: "AWS::EC2::Route"
+    Properties: 
+      RouteTableId: !Ref PublicRouteTableA 
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref InternetGateway # 0.0.0.0/0への通信、つまり扱っているCIDR以外の通信は外部インターネットに流すということ
+
+# PublicRouteC Create
+  PublicRouteC: 
+    Type: "AWS::EC2::Route"
+    Properties: 
+      RouteTableId: !Ref PublicRouteTableC 
+      DestinationCidrBlock: "0.0.0.0/0" # 0.0.0.0/0への通信、つまり扱っているCIDR以外の通信は外部インターネットに流すということ
+      GatewayId: !Ref InternetGateway 
+
+# ------------------------------------------------------------#
+# RouteTable Associate（ルートテーブルをサブネットに紐づける設定）
+# ------------------------------------------------------------# 
+# PublicRouteTable Associate SubnetA
+  PublicSubnetARouteTableAssociation: # 10.1.10.0/24の範囲と、外部インターネット接続可能
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref PublicSubnetA 
+      RouteTableId: !Ref PublicRouteTableA
+
+# PublicRouteTable Associate SubnetC
+  PublicSubnetCRouteTableAssociation: # 10.1.20.0/24の範囲と、外部インターネット接続可能
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref PublicSubnetC 
+      RouteTableId: !Ref PublicRouteTableC
+
+# PrivateRouteTable Associate SubnetA
+  PrivateSubnetARouteTableAssociation: # 10.1.100.0/24の範囲でしか通信不可
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref PrivateSubnetA
+      RouteTableId: !Ref PrivateRouteTableA 
+
+# PrivateRouteTable Associate SubnetC
+  PrivateSubnetCRouteTableAssociation: # 10.1.200.0/24の範囲でしか通信不可
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref PrivateSubnetC
+      RouteTableId: !Ref PrivateRouteTableC
+
+# ------------------------------------------------------------#
+#  S３の利用設定。実行時のログをS3にアップロードするための設定と思われる。おそらく固定でよい。
+#  https://github.com/aws-samples/aws-systems-manager-cloudformation-samples/blob/main/cloudformation-samples/AnsibleAssociation.yaml#L14-L63
+# ------------------------------------------------------------#
+  SSMAssocLogs:
+    Type: AWS::S3::Bucket
+  SSMInstanceRole: 
+    Type : AWS::IAM::Role
+    Properties:
+      Policies:
+        - PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - s3:GetObject
+                Resource: 
+                  - !Sub 'arn:aws:s3:::aws-ssm-${AWS::Region}/*'
+                  - !Sub 'arn:aws:s3:::aws-windows-downloads-${AWS::Region}/*'
+                  - !Sub 'arn:aws:s3:::amazon-ssm-${AWS::Region}/*'
+                  - !Sub 'arn:aws:s3:::amazon-ssm-packages-${AWS::Region}/*'
+                  - !Sub 'arn:aws:s3:::${AWS::Region}-birdwatcher-prod/*'
+                  - !Sub 'arn:aws:s3:::patch-baseline-snapshot-${AWS::Region}/*'
+                Effect: Allow
+          PolicyName: ssm-custom-s3-policy
+        - PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:PutObjectAcl
+                  - s3:ListBucket
+                Resource: 
+                  - !Sub 'arn:${AWS::Partition}:s3:::${SSMAssocLogs}/*'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${SSMAssocLogs}'
+                Effect: Allow
+          PolicyName: s3-instance-bucket-policy
+      Path: /
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: "Allow"
+          Principal:
+            Service:
+            - "ec2.amazonaws.com"
+            - "ssm.amazonaws.com"
+          Action: "sts:AssumeRole"
+  SSMInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Roles:
+      - !Ref SSMInstanceRole
+
+# ここまでは上記固定の書き方で問題ない
+
+# ------------------------------------------------------------#
+# セキュリティグループ Setting
+# ------------------------------------------------------------#
+
+  mattermostSecurityGroupSERVER: # 英数字のみ
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: mattermost-Security-Group-SERVER
+      GroupDescription: Allow SSH and HTTP access only MyIP
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        # http mattermost
+        - IpProtocol: tcp
+          FromPort: 8065 # ２つセット？通常は同じにしておこう
+          ToPort: 8065 # ２つセット？通常は同じにしておこう
+          CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
+          Description: "http pc->"
+        # ssh
+        - IpProtocol: tcp
+          FromPort: 22 # ２つセット？通常は同じにしておこう
+          ToPort: 22 # ２つセット？通常は同じにしておこう
+          CidrIp: !Ref MyIP # sshのアクセスを自宅のIPからに限定する
+          Description: "ssh pc->ec2"
+      Tags:
+      - Key: Name
+        Value: securitygroup-server
+
+# ------------------------------------------------------------#
+# EC2 Setting mattermost
+# ------------------------------------------------------------#         
+  mattermostEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: !Ref KeyName
+      ImageId: !Ref LatestAmiId
+      InstanceType: !FindInMap [ !Ref Environment, mattermostEC2, InstanceType ]
+      # Monitoring: true|false
+      IamInstanceProfile: !Ref SSMInstanceProfile # ここでロールと紐付け
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true" # 自動でpublic IPを取得、DNS
+          DeviceIndex: "0"
+          SubnetId: !Ref PublicSubnetA # PublicSubnetAに所属する
+          PrivateIpAddress: !FindInMap [ !Ref Environment, mattermostEC2, PrivateIpAddress ]
+          GroupSet:
+            - !Ref mattermostSecurityGroupSERVER  
+      Tags:
+        - Key: Name # マネジメントコンソールに表示されるEC2の名前だと思う
+          Value: !FindInMap [ !Ref Environment, mattermostEC2, HostName ]
+        - Key: 'mattermost' # 意味がわからないが、サンプルにある
+          Value: 'yes' # タグをみてこのインスタンスはmattermostを使っている（yes)とわかってもらいたいかもしれない
+  AnsibleAssociationmattermost:
+    Type: AWS::SSM::Association
+    Properties:
+      # Here using the AWS-ApplyAnsiblePlaybooks
+      Name: AWS-ApplyAnsiblePlaybooks
+      WaitForSuccessTimeoutSeconds: 300
+      # Targeting Instance by InstanceId passed from the Logical ID of Instance being created 
+      # in CloudFormation
+      Targets:
+        - Key: InstanceIds
+          Values: [ !Ref mattermostEC2 ]
+      OutputLocation:
+        S3Location: 
+          OutputS3BucketName: !Ref SSMAssocLogs
+          OutputS3KeyPrefix: 'logs/'
+      Parameters:
+        # Getting an Ansible Playbook from a GitHub Location
+        SourceType:
+          - 'GitHub'
+        SourceInfo:  # 本当はmappingの変数を使いたいが動かせない
+         -  !Sub |
+              {"owner":"${GitHubOwner}",
+              "repository":"${GitHubRepo}",
+              "path":"",
+              "getOptions":"branch:${GitHubBranch}"}      
+        # Installing Ansible and its dependencies
+        InstallDependencies:
+          - 'True'
+        # Playbook file we want to run
+        PlaybookFile:
+          - !FindInMap [ !Ref Environment, mattermostEC2, Playbook ]
+        ExtraVariables:
+          - 'SSM=True'
+        Check:
+          - 'False'
+        Verbose:
+          - '-v'
+# ------------------------------------------------------------#
+# RDS Setting MYSQL
+# https://none06.hatenadiary.org/entry/2021/06/19/124543
+# ------------------------------------------------------------#
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: DBSubnetGroup
+      DBSubnetGroupName: dbsubnetgroup
+      SubnetIds:
+      - !Ref PublicSubnetA
+      Tags:
+      - Key: Name
+        Value: dbsubnetgroup
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SecurityGroup
+      SecurityGroupIngress:
+      - CidrIp: 0.0.0.0/0
+        FromPort: 3306
+        IpProtocol: tcp
+        ToPort: 3306
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: securitygroup-db
+  DBClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Description: DBCluster
+      Family: aurora-mysql5.7
+      Parameters:
+        time_zone: Asia/Tokyo
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DBClusterIdentifier: dbcluster
+      DBClusterParameterGroupName: !Ref DBClusterParameterGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      DatabaseName: db
+      Engine: aurora-mysql
+      EngineVersion: !Ref EngineVersion
+      MasterUserPassword: !Ref DBMasterUserPassword
+      MasterUsername: !Ref DBMasterUserName
+      VpcSecurityGroupIds:
+      - !Ref DBSecurityGroup
+      Tags:
+      - Key: Name
+        Value: dbcluster
+    DeletionPolicy: Delete
+  DBInstance1:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceClass: !Ref InstanceClass
+      Engine: aurora-mysql
+      AvailabilityZone: !Select
+        - 0 # 配列の番号。配列[ap-northeast-1a, ap-northeast-1c, ap-northeast-1d]　らしい
+        - Fn::GetAZs: !Ref AWS::Region
+      Tags:
+      - Key: Name
+        Value: mattermost-db1
+# ------------------------------------------------------------#
+# Output Parameters
+# ------------------------------------------------------------#
+# スタック作成後に、画面に情報を出してくれる設定              
+Outputs: # ファイルの最後に書かないとエラーかもしれない
+# VPC
+  VPC: # 作成したVPC名を表示.ここが出力画面のキー名になっている
+    Value: !Ref VPC # 出力したいリソースの物理IDを指定している？
+    Export:
+      Name: !Sub "${PJPrefix}-vpc" # 出力したい項目。エクスポート名となる。環境変数に入れたということか？なくても動きそう
+
+  VPCCIDR: # 作成したVPCのCIDR（扱うネットワーク範囲）を表示
+    Value: !Ref VPCCIDR
+    Export:
+      Name: !Sub "${PJPrefix}-vpc-cidr"
+
+# Subnet
+  PublicSubnetA: # 作成したパブリックサブネット(PublicSubnetA)の名前を表示
+    Value: !Ref PublicSubnetA
+    Export:
+      Name: !Sub "${PJPrefix}-public-subnet-a"
+
+  PublicSubnetACIDR: # 作成したパブリックサブネット(PublicSubnetA)のCIDR（扱うネットワーク範囲）を表示
+    Value: !Ref PublicSubnetACIDR
+    Export:
+      Name: !Sub "${PJPrefix}-public-subnet-a-cidr"
+
+  PublicSubnetC: 
+    Value: !Ref PublicSubnetC
+    Export:
+      Name: !Sub "${PJPrefix}-public-subnet-c"
+
+  PublicSubnetCCIDR:
+    Value: !Ref PublicSubnetCCIDR
+    Export:
+      Name: !Sub "${PJPrefix}-public-subnet-c-cidr"
+
+  PrivateSubnetA: # 作成したプライベートサブネット(PrivateSubnetA)の名前を表示
+    Value: !Ref PrivateSubnetA
+    Export:
+      Name: !Sub "${PJPrefix}-private-subnet-a"
+
+  PrivateSubnetACIDR: # 作成したプライベートサブネット(PublicSubnetA)のCIDR（扱うネットワーク範囲）を表示
+    Value: !Ref PrivateSubnetACIDR
+    Export:
+      Name: !Sub "${PJPrefix}-private-subnet-a-cidr"
+
+  PrivateSubnetC:
+    Value: !Ref PrivateSubnetC
+    Export:
+      Name: !Sub "${PJPrefix}-private-subnet-c"
+
+  PrivateSubnetCCIDR:
+    Value: !Ref PrivateSubnetCCIDR
+    Export:
+      Name: !Sub "${PJPrefix}-private-subnet-c-cidr"
+
+# Route
+  PublicRouteTableA:
+    Value: !Ref PublicRouteTableA
+    Export:
+      Name: !Sub "${PJPrefix}-public-route-a" # なんだろう？
+
+  PublicRouteTableC:
+    Value: !Ref PublicRouteTableC
+    Export:
+      Name: !Sub "${PJPrefix}-public-route-c"
+
+  PrivateRouteTableA:
+    Value: !Ref PrivateRouteTableA
+    Export:
+      Name: !Sub "${PJPrefix}-private-route-a"
+
+  PrivateRouteTableC:
+    Value: !Ref PrivateRouteTableC
+    Export:
+      Name: !Sub "${PJPrefix}-private-route-c"
+
+# PublicIP
+  mattermostEC2PublicIP:
+    Value: !GetAtt mattermostEC2.PublicIp
+    Description: Public IP of mattermost EC2 instance
+
+# PublicDNS
+  mattermostEC2PublicDnsName:
+    Value: !GetAtt mattermostEC2.PublicDnsName
+    Description: Public DNS of mattermost EC2 instance
