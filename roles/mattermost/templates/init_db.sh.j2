@@ -1,0 +1,18 @@
+#!/bin/bash
+set -ex
+
+echo "[INFO] start"
+CMD_MYSQL="mysql -h {{ db_endpoint }} -P 3306 -u {{ db_master_user }} --password={{ db_master_password }}"
+
+# SQLの実行
+# 複数のクエリを発行する場合は、
+# 複数行の文字列にクエリをセミコロン(;)で繋げて指定する
+${QUERY} <<EOF
+    create user '{{ mattermost_user }}'@'%' identified by '{{ mattermost_password }}';
+    create database {{ mattermost_dbname }};
+    grant all privileges on {{ mattermost_dbname }}.* to '{{ mattermost_user }}'@'%';
+    exit;
+EOF
+VALUE=`echo ${QUERY} | ${CMD_MYSQL}`
+
+echo "[INFO] succes end"
