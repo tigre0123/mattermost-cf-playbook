@@ -15,20 +15,18 @@
     src: /tmp/mattermost-7.0.1-linux-amd64.tar.gz
     dest: /opt   # /opt/mattermost ができる
     remote_src: yes
-  when: not result.stat.exists # resultがFalseの場合のみ処理を実行します
-  。
+  when: not result.stat.exists # resultがFalseの場合のみ処理を実行します。
+  
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/group_module.html
 - name: create group 'mattermost'
   group:
     name: mattermost
-    comment: mattermost group
     # gid: 1003
 
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/user_module.html
 - name: Add the user 'mattermost'
   user:
     name: mattermost
-    comment: mattermost user
     group: mattermost
     create_home: no
     # uid: 1040
@@ -42,6 +40,11 @@
     group: mattermost
     mode: '775'
     recurse: yes
+
+- name: mysql intall 
+  yum:
+    name: mysql
+    state: present
 
 # https://docs.mattermost.com/configure/configuation-in-mattermost-database.html
 # https://www.d-make.co.jp/blog/2021/06/11/%E3%82%AF%E3%83%AD%E3%83%BC%E3%82%BA%E3%83%89%E3%81%AA%E7%92%B0%E5%A2%83%E3%81%A7%E3%81%AEmattermost%E3%81%AE%E6%A7%8B%E7%AF%89%E3%82%92%E8%A9%A6%E3%81%97%E3%81%A6%E3%81%BF%E3%81%9F/ 

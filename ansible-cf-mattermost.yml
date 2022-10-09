@@ -569,7 +569,8 @@ Resources:
       DBClusterParameterGroupName: !Ref DBClusterParameterGroup
       DBSubnetGroupName: !Ref DBSubnetGroup
       DatabaseName: db
-      Engine: aurora-mysql
+      Engine: MySQL
+      # Engine: aurora-mysql
       EngineVersion: !Ref EngineVersion
       MasterUserPassword: !Ref DBMasterUserPassword
       MasterUsername: !Ref DBMasterUserName
@@ -588,7 +589,8 @@ Resources:
       DBName: !Ref DBName
       DBClusterIdentifier: !Ref DBCluster
       DBInstanceClass: !Ref InstanceClass
-      Engine: aurora-mysql
+      Engine: MySQL
+      # Engine: aurora-mysql
       AvailabilityZone: !Select
         - 0 # 配列の番号。配列[ap-northeast-1a, ap-northeast-1c, ap-northeast-1d]　らしい
         - Fn::GetAZs: !Ref AWS::Region
