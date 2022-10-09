@@ -49,6 +49,7 @@
     group: mattermost
     mode: '775'
 
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/yum_module.html
 - name: mysql intall
   yum:
     name: mysql
@@ -81,11 +82,13 @@
     group: mattermost
     mode: 0755
 
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/stat_module.html
 - name: initial-db-setup-confirm
   stat:
     path: /opt/mattermost/.init_db.done
   register: db_result # 存在していればdb_resultという変数にTrueを、存在していなければFalseを格納します。
 
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/shell_module.html
 - name: execute init_db.sh
   shell: |
     bash /opt/mattermost/init_db.sh
@@ -109,14 +112,7 @@
     state: restarted
     enabled: yes
 
-- name: generate show_mattermost_url.sh from template
-  template:
-    src: show_mattermost_url.sh.j2
-    dest: /opt/mattermost/show_mattermost_url.sh
-    owner: mattermost
-    group: mattermost
-    mode: 0755
-
+# https://docs.ansible.com/ansible/latest/collections/netapp/ontap/na_ontap_debug_module.html
 - name: Setup is complete
   debug: 
     msg: "See the link -> http://{{ mattermost_endpoint }}:8065"
