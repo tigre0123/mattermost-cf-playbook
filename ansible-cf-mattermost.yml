@@ -129,10 +129,10 @@ Parameters:
     # Default: 5.7.12
   InstanceClass:
     Type: String
-    Default: db.t2.micro
+    Default: db.t2.small
     AllowedValues:
     - db.t2.micro
-    # - db.t2.small
+    - db.t2.small
 Mappings:
   # https://dev.classmethod.jp/articles/cloudformation-ec2-build/
   prd:
