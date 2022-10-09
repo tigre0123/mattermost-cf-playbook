@@ -569,8 +569,7 @@ Resources:
       DBClusterParameterGroupName: !Ref DBClusterParameterGroup
       DBSubnetGroupName: !Ref DBSubnetGroup
       DatabaseName: db
-      Engine: MySQL
-      # Engine: aurora-mysql
+      Engine: aurora-mysql
       EngineVersion: !Ref EngineVersion
       MasterUserPassword: !Ref DBMasterUserPassword
       MasterUsername: !Ref DBMasterUserName
@@ -583,14 +582,13 @@ Resources:
   DBInstance1:
     Type: AWS::RDS::DBInstance
     Properties:
-      DBInstanceIdentifier: !Ref DBInstanceName
-      AllocatedStorage: !Ref DBInstanceStorageSize
-      StorageType: !Ref DBInstanceStorageType
-      DBName: !Ref DBName
+      # DBInstanceIdentifier: !Ref DBInstanceName
+      # AllocatedStorage: !Ref DBInstanceStorageSize
+      # StorageType: !Ref DBInstanceStorageType
+      # DBName: !Ref DBName
       DBClusterIdentifier: !Ref DBCluster
       DBInstanceClass: !Ref InstanceClass
-      Engine: MySQL
-      # Engine: aurora-mysql
+      Engine: aurora-mysql
       AvailabilityZone: !Select
         - 0 # 配列の番号。配列[ap-northeast-1a, ap-northeast-1c, ap-northeast-1d]　らしい
         - Fn::GetAZs: !Ref AWS::Region

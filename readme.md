@@ -6,6 +6,8 @@ aws cloudformation deploy \
     --capabilities CAPABILITY_NAMED_IAM
 ```
 # インスタンスにansibleを実行するだけの場合（デバッグ用）
+Todo:Dockerを使うようにする。そうすればwindows,macで同じように使えるようになるだろう<br>
+
 windowsで動かす方法がわからなかったのでWSLにインストールすることにした。
 https://qiita.com/Tkm08/items/58e1fb7990387a2e9c76
 https://docs.ansible.com/ansible/2.9_ja/user_guide/windows_faq.html
