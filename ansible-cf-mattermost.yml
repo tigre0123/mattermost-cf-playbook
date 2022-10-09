@@ -51,8 +51,25 @@ Metadata: # 入力パラメータが多いとき、Metadataを使って入力し
         default: "ansible playbook GitHubRepo"
       GitHubBranch:
         default: "ansible playbook GitHubBranch"
+
+      DBInstanceName:
+        default: "DBInstanceName"
+      DBInstanceClass:
+        default: "DBInstanceClass"
+      DBInstanceStorageSize:
+        default: "DBInstanceStorageSize"
+      DBInstanceStorageType:
+        default: "DBInstanceStorageType"
+      DBName:
+        default: "DBName"
+      DBMasterUserName:
+        default: "DBUserName"
+      DBPassword:
+        default: "DBPassword"
+      MultiAZ:
+        default: "MultiAZ"
 # ------------------------------------------------------------#
-# Input Parameters
+# Input Parameters(Instance)
 # ------------------------------------------------------------# 
 # 入力パラメータの型や、デフォルト値の設定と思われる
 Parameters:
@@ -116,13 +133,48 @@ Parameters:
     Description: ansible playbook GitHubBranch
     Type: String
     Default: "main"
-
+# ------------------------------------------------------------#
+# Input Parameters(DB)
+# ------------------------------------------------------------# 
+  DBInstanceName:
+    Type: String
+    Default: "mattermost"
+  DBInstanceStorageSize:
+    Type: String
+    Default: "20"
+  DBInstanceStorageType:
+    Type: String
+    Default: "gp2"
+  DBName:
+    Type: String
+    Default: "mattermost"
   DBMasterUserName:
     Type: String
-    Default: admin
-  DBMasterUserPassword:
+    Default: "admin"
+    NoEcho: true
+    MinLength: 1
+    MaxLength: 16
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+    ConstraintDescription: "must begin with a letter and contain only alphanumeric characters."
+  DBMasterUserPassword: 
+    Default: "adminadmin"
+    NoEcho: true
     Type: String
-    Default: adminadmin
+    MinLength: 8
+    MaxLength: 41
+    AllowedPattern: "[a-zA-Z0-9]*"
+    ConstraintDescription: "must contain only alphanumeric characters."
+  MultiAZ: 
+    Default: "false"
+    Type: String
+    AllowedValues: [ "true", "false" ]
+
+  # DBMasterUserName:
+  #   Type: String
+  #   Default: admin
+  # DBMasterUserPassword:
+  #   Type: String
+  #   Default: adminadmin
   EngineVersion:
     Type: String
     Default: 5.7
@@ -131,7 +183,7 @@ Parameters:
     Type: String
     Default: db.t2.small
     AllowedValues:
-    - db.t2.micro
+    - db.t2.micro # 動かない
     - db.t2.small
 Mappings:
   # https://dev.classmethod.jp/articles/cloudformation-ec2-build/
@@ -145,7 +197,7 @@ Mappings:
       HostName: mattermost.host
       PrivateIpAddress: 10.1.10.100
       InstanceType: t2.micro
-      AmiId: ami-08a8688fb7eacb171 # Amazon Linux 2 AMI (HVM) - Kernel 5.10, SSD Volume Type
+      # AmiId: ami-08a8688fb7eacb171 # Amazon Linux 2 AMI (HVM) - Kernel 5.10, SSD Volume Type
       Playbook: "mattermost.yml"
 
 
@@ -530,6 +582,10 @@ Resources:
   DBInstance1:
     Type: AWS::RDS::DBInstance
     Properties:
+      DBInstanceIdentifier: !Ref DBInstanceName
+      AllocatedStorage: !Ref DBInstanceStorageSize
+      StorageType: !Ref DBInstanceStorageType
+      DBName: !Ref DBName
       DBClusterIdentifier: !Ref DBCluster
       DBInstanceClass: !Ref InstanceClass
       Engine: aurora-mysql
