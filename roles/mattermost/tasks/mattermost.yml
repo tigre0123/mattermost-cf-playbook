@@ -1,6 +1,6 @@
 ---
 - name: initial-setup-confirm
-  stat: 
+  stat:
     path: /opt/mattermost/config/config.json
   register: result # 存在していればresultという変数にTrueを、存在していなければFalseを格納します。
 
@@ -49,7 +49,7 @@
     group: mattermost
     mode: '775'
 
-- name: mysql intall 
+- name: mysql intall
   yum:
     name: mysql
     state: present
@@ -67,19 +67,30 @@
 # https://docs.ansible.com/ansible/2.9_ja/modules/template_module.html#template-module
 - name: generate mattermost config file from template
   template:
-    src=config.json.j2
-    dest=/opt/mattermost/config/config.json
-    owner=mattermost 
-    group=mattermost 
-    mode=0644
+    src: config.json.j2
+    dest: /opt/mattermost/config/config.json
+    owner: mattermost
+    group: mattermost
+    mode: 0644
 
 - name: generate database setup script from template
   template:
-    src=init_db.sh.j2
-    dest=/home/ec2-user/init_db.sh
-    owner=root
-    group=root 
-    mode=0755
+    src: init_db.sh.j2
+    dest: /opt/mattermost/init_db.sh
+    owner: mattermost
+    group: mattermost
+    mode: 0755
+
+- name: initial-db-setup-confirm
+  stat:
+    path: /opt/mattermost/.init_db.done
+  register: db_result # 存在していればdb_resultという変数にTrueを、存在していなければFalseを格納します。
+
+- name: execute init_db.sh
+  shell: |
+    bash /opt/mattermost/init_db.sh
+    touch /opt/mattermost/.init_db.done
+  when: not db_result.stat.exists # resultがFalseの場合のみ処理を実行します。init_db.shを１回だけ実行するためのフラグです。
 
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html
 - name: generate mattermost.service file
@@ -97,3 +108,17 @@
     daemon_reload: yes
     state: restarted
     enabled: yes
+
+
+- name: generate show_mattermost_url.sh from template
+  template:
+    src: show_mattermost_url.sh
+    dest: /opt/mattermost/show_mattermost_url.sh.j2
+    owner: mattermost
+    group: mattermost
+    mode: 0755
+
+- name: execute init_db.sh
+  shell: |
+    bash /opt/mattermost/init_db.sh
+  

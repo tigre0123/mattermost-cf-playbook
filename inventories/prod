@@ -4,8 +4,10 @@
 ec2-18-183-77-94.ap-northeast-1.compute.amazonaws.com 
 
 [mattermost:vars]
-# db_endpointはデータベースを作成毎に修正が必要です。
+# mattermost_endpoint,db_endpointはデータベースを作成毎に修正が必要です。
+mattermost_endpoint=ec2-18-183-77-94.ap-northeast-1.compute.amazonaws.com 
 db_endpoint=mattermost-dbinstance1-rrxkpkxadbnp.cmx6ii0fhbpg.ap-northeast-1.rds.amazonaws.com
+
 # 以下は変更不要。業務ではpasswordはansible vault等で管理が必要
 drivername=mysql
 db_master_user=admin

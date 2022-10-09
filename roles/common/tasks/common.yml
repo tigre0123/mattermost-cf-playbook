@@ -4,5 +4,5 @@
     name:
       - git
       - nc
-    state: latest
-    # state: present
+    # state: latest
+    state: present
