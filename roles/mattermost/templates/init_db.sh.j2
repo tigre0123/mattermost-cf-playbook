@@ -1,18 +1,29 @@
 #!/bin/bash
-set -ex
 
-echo "[INFO] start"
+# https://notepad-blog.com/content/72/
+
+echo "[INFO] 処理開始"
 CMD_MYSQL="mysql -h {{ db_endpoint }} -P 3306 -u {{ db_master_user }} --password={{ db_master_password }}"
 
-# SQLの実行
+# SQLの実行echo "[INFO] 処理開始"
 # 複数のクエリを発行する場合は、
 # 複数行の文字列にクエリをセミコロン(;)で繋げて指定する
-${QUERY} <<EOF
+QUERY=`cat << EOF
     create user '{{ mattermost_user }}'@'%' identified by '{{ mattermost_password }}';
     create database {{ mattermost_dbname }};
     grant all privileges on {{ mattermost_dbname }}.* to '{{ mattermost_user }}'@'%';
-    exit;
+    commit;
 EOF
+`
 VALUE=`echo ${QUERY} | ${CMD_MYSQL}`
 
-echo "[INFO] succes end"
+# 処理の終了コードを取得
+RESULT=$?
+# 結果のチェック
+if [ $RESULT -eq 0 ]; then
+    echo "[INFO] 処理終了"
+    exit 0
+else
+    echo "[ERROR] 予期せぬエラーが発生 異常終了"
+    exit 1
+fi
