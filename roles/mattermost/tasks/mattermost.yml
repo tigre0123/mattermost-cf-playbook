@@ -16,7 +16,16 @@
     dest: /opt   # /opt/mattermost ができる
     remote_src: yes
   when: not result.stat.exists # resultがFalseの場合のみ処理を実行します。
-  
+
+- name: mattermost directory permission
+  file:
+    path: "/opt/mattermost"
+    state: directory
+    owner: mattermost
+    group: mattermost
+    mode: '775'
+    recurse: yes
+
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/group_module.html
 - name: create group 'mattermost'
   group:
@@ -32,14 +41,13 @@
     # uid: 1040
 
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/file_module.html
-- name: mattermost directory created
+- name: mattermost data directory created
   file:
     path: "/etc/mattermost/data"
     state: directory
     owner: mattermost
     group: mattermost
     mode: '775'
-    recurse: yes
 
 - name: mysql intall 
   yum:
@@ -61,11 +69,11 @@
   copy:
     src: mattermost.service
     dest: /etc/systemd/system/mattermost.service
-    owner: mattermost
-    group: mattermost
+    owner: root
+    group: root
     mode: '0664'
 
-# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/systemd_module.html
+https://docs.ansible.com/ansible/latest/collections/ansible/builtin/systemd_module.html
 - name: mattermost.service restart
   systemd:
     name: mattermost

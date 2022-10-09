@@ -546,7 +546,9 @@ Resources:
     Properties:
       GroupDescription: SecurityGroup
       SecurityGroupIngress:
-      - CidrIp: 0.0.0.0/0
+      # - CidrIp: 0.0.0.0/0
+      # https://qiita.com/yz2cm/items/2448f1545fef406ce8e3
+      - SourceSecurityGroupId: !Ref mattermostSecurityGroupSERVER
         FromPort: 3306
         IpProtocol: tcp
         ToPort: 3306
