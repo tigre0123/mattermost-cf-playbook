@@ -109,16 +109,15 @@
     state: restarted
     enabled: yes
 
-
 - name: generate show_mattermost_url.sh from template
   template:
-    src: show_mattermost_url.sh
-    dest: /opt/mattermost/show_mattermost_url.sh.j2
+    src: show_mattermost_url.sh.j2
+    dest: /opt/mattermost/show_mattermost_url.sh
     owner: mattermost
     group: mattermost
     mode: 0755
 
-- name: execute init_db.sh
-  shell: |
-    bash /opt/mattermost/init_db.sh
+- name: Setup is complete
+  debug: 
+    msg: "See the link -> http://{{ mattermost_endpoint }}:8065"
   
