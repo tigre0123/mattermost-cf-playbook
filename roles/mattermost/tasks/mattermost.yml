@@ -73,7 +73,7 @@
     group: root
     mode: '0664'
 
-https://docs.ansible.com/ansible/latest/collections/ansible/builtin/systemd_module.html
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/systemd_module.html
 - name: mattermost.service restart
   systemd:
     name: mattermost
