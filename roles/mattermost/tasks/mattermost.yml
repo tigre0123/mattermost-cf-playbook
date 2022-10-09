@@ -4,12 +4,14 @@
     path: /opt/mattermost/config/config.json
   register: result # 存在していればresultという変数にTrueを、存在していなければFalseを格納します。
 
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/get_url_module.html
 - name: download mattermost
   get_url:
     url: https://releases.mattermost.com/7.0.1/mattermost-7.0.1-linux-amd64.tar.gz
     dest: /tmp
   when: not result.stat.exists # resultがFalseの場合のみ処理を実行します。
 
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/unarchive_module.html
 - name: unarchive mattermost-7.0.1-linux-amd64.tar.gz
   unarchive:
     src: /tmp/mattermost-7.0.1-linux-amd64.tar.gz
@@ -17,6 +19,19 @@
     remote_src: yes
   when: not result.stat.exists # resultがFalseの場合のみ処理を実行します。
 
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/group_module.html
+- name: create group 'mattermost'
+  group:
+    name: mattermost
+
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/user_module.html
+- name: Add the user 'mattermost'
+  user:
+    name: mattermost
+    group: mattermost
+    create_home: no
+
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/file_module.html
 - name: mattermost directory permission
   file:
     path: "/opt/mattermost"
@@ -26,21 +41,6 @@
     mode: '775'
     recurse: yes
 
-# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/group_module.html
-- name: create group 'mattermost'
-  group:
-    name: mattermost
-    # gid: 1003
-
-# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/user_module.html
-- name: Add the user 'mattermost'
-  user:
-    name: mattermost
-    group: mattermost
-    create_home: no
-    # uid: 1040
-
-# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/file_module.html
 - name: mattermost data directory created
   file:
     path: "/etc/mattermost/data"
