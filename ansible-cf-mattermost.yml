@@ -125,7 +125,8 @@ Parameters:
     Default: adminadmin
   EngineVersion:
     Type: String
-    Default: 5.7.12
+    Default: 5.7
+    # Default: 5.7.12
   InstanceClass:
     Type: String
     Default: db.t2.micro
