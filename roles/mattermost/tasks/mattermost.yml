@@ -1,0 +1,44 @@
+---
+- name: initial-setup-confirm
+  stat: 
+    path: /etc/prometheus/prometheus.yml
+  register: result # 存在していればresultという変数にTrueを、存在していなければFalseを格納します。
+- name: download prometheus
+  get_url:
+    url: https://github.com/prometheus/prometheus/releases/download/v2.30.3/prometheus-2.30.3.linux-amd64.tar.gz
+    dest: /tmp
+  when: not result.stat.exists # resultがFalseの場合のみ処理を実行します。
+- name: unarchive prometheus-2.30.3.linux-amd64.tar.gz
+  unarchive:
+    src: /tmp/prometheus-2.30.3.linux-amd64.tar.gz
+    dest: /tmp   # /tmp/prometheus-2.30.3.linux-amd64
+    remote_src: yes
+  when: not result.stat.exists # resultがFalseの場合のみ処理を実行します。
+- name: prometheus directory created
+  file:
+    path: "/etc/prometheus"
+    state: directory
+    owner: "root"
+    group: "root"
+    mode: "775"
+- name: prometheusディレクトリに解凍したファイルを移動
+  shell: |
+    mv /tmp/prometheus-2.30.3.linux-amd64/* /etc/prometheus
+  when: not result.stat.exists # resultがFalseの場合のみ処理を実行します。
+- name: generate prometheus.service config file
+  copy:
+    src: prometheus.service
+    dest: /usr/lib/systemd/system/prometheus.service
+- name: generate prometheus config file
+  copy:
+    src: prometheus.yml
+    dest: /etc/prometheus/prometheus.yml
+- name: generate alert rules
+  copy:
+    src: alerting_rules/
+    dest: /etc/prometheus/alerting_rules/
+- name: prometheusサービスの再起動
+  systemd:
+    name: prometheus
+    state: restarted
+    enabled: yes
