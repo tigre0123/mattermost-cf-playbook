@@ -402,13 +402,13 @@ Resources:
           FromPort: 8065 # ２つセット？通常は同じにしておこう
           ToPort: 8065 # ２つセット？通常は同じにしておこう
           CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
-          Description: "http pc->"
+          Description: "http from pc to ec2"
         # ssh
         - IpProtocol: tcp
           FromPort: 22 # ２つセット？通常は同じにしておこう
           ToPort: 22 # ２つセット？通常は同じにしておこう
           CidrIp: !Ref MyIP # sshのアクセスを自宅のIPからに限定する
-          Description: "ssh pc->ec2"
+          Description: "ssh from pc to ec2"
       Tags:
       - Key: Name
         Value: securitygroup-server
@@ -496,6 +496,7 @@ Resources:
         FromPort: 3306
         IpProtocol: tcp
         ToPort: 3306
+        Description: "tcp from ec2 to rds"
       VpcId: !Ref VPC
       Tags:
       - Key: Name
