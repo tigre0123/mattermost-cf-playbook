@@ -501,7 +501,7 @@ Resources:
         - Name: "jagisama.com"
           ResourceRecords:
             # 通常のパブリック IPv4 アドレス
-            - { "Fn::ImportValue": !Sub "${PJPrefix}-public-ip" }
+            - !GetAtt mattermostEC2.PublicIp
           Type: A
           TTL: 300
 
@@ -713,10 +713,8 @@ Outputs: # ファイルの最後に書かないとエラーかもしれない
   mattermostEC2PublicIP:
     Value: !GetAtt mattermostEC2.PublicIp
     Description: Public IP of mattermost EC2 instance
-    #Export:
-    #  Name: mattermostip # ハイフンは使えないらしい
     Export:
-      Name: !Sub "${PJPrefix}-public-ip"
+      Name: !Sub "${PJPrefix}-mattermostec2publicip" # この変数はstackが終了しないとセットされない。使うにはstackを分割しないと使えない
 # PublicDNS
   mattermostEC2PublicDnsName:
     Value: !GetAtt mattermostEC2.PublicDnsName
