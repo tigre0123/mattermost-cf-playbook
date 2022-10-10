@@ -456,13 +456,13 @@ Resources:
           ToPort: 8065 # ２つセット？通常は同じにしておこう
           CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
           Description: "http from pc to ec2"
-        # http mattermost
+        # ssh
         - IpProtocol: tcp
-          FromPort: 8065 # ２つセット？通常は同じにしておこう
-          ToPort: 8065 # ２つセット？通常は同じにしておこう
-          CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
-          Description: "http from pc to ec2"
-        # test用
+          FromPort: 22 # ２つセット？通常は同じにしておこう
+          ToPort: 22 # ２つセット？通常は同じにしておこう
+          CidrIp: !Ref MyIP # sshのアクセスを自宅のIPからに限定する
+          Description: "http test from pc to ec2"
+        # test
         - IpProtocol: tcp
           FromPort: 80 # ２つセット？通常は同じにしておこう
           ToPort: 80 # ２つセット？通常は同じにしておこう
