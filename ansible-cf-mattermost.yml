@@ -466,7 +466,8 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80 # ２つセット？通常は同じにしておこう
           ToPort: 80 # ２つセット？通常は同じにしておこう
-          CidrIp: !Ref MyIP # sshのアクセスを自宅のIPからに限定する
+          # CidrIp: !Ref MyIP # sshのアクセスを自宅のIPからに限定する
+          CidrIp: 0.0.0.0/0 # sshのアクセスを自宅のIPからに限定する
           Description: "http test from pc to ec2"
       Tags:
       - Key: Name
@@ -660,7 +661,8 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
+          # CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
+          CidrIp: 0.0.0.0/0 # httpのアクセスを自宅のIPからに限定する
           Description: "http from pc to ALB"
       Tags:
         - Key: Name
