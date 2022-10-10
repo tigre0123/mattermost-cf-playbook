@@ -501,7 +501,7 @@ Resources:
         - Name: "jagisama.com"
           ResourceRecords:
             # 通常のパブリック IPv4 アドレス
-            - !ImportValue mattermostip
+            - !ImportValue alb-hostzoneid
           Type: A
           TTL: 300
 
@@ -713,8 +713,10 @@ Outputs: # ファイルの最後に書かないとエラーかもしれない
   mattermostEC2PublicIP:
     Value: !GetAtt mattermostEC2.PublicIp
     Description: Public IP of mattermost EC2 instance
+    #Export:
+    #  Name: mattermostip # ハイフンは使えないらしい
     Export:
-      Name: mattermostip # ハイフンは使えないらしい
+      Name: alb-hostzoneid
 # PublicDNS
   mattermostEC2PublicDnsName:
     Value: !GetAtt mattermostEC2.PublicDnsName
