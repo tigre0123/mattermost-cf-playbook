@@ -489,6 +489,11 @@ Resources:
           Value: !FindInMap [ !Ref Environment, mattermostEC2, HostName ]
         - Key: 'mattermost' # 意味がわからないが、サンプルにある
           Value: 'yes' # タグをみてこのインスタンスはmattermostを使っている（yes)とわかってもらいたいかもしれない
+  IPAssoc:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      InstanceId: !Ref mattermostEC2
+      EIP: 54.199.124.245 # 既存のEIPを割り当てる
   # AnsibleAssociationmattermost:
   #   Type: AWS::SSM::Association
   #   Properties:
