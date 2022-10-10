@@ -716,7 +716,7 @@ Outputs: # ファイルの最後に書かないとエラーかもしれない
     #Export:
     #  Name: mattermostip # ハイフンは使えないらしい
     Export:
-      Name: alb-hostzoneid
+      Name: "alb-hostzoneid"
 # PublicDNS
   mattermostEC2PublicDnsName:
     Value: !GetAtt mattermostEC2.PublicDnsName
