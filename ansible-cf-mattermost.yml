@@ -456,12 +456,18 @@ Resources:
           ToPort: 8065 # ２つセット？通常は同じにしておこう
           CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
           Description: "http from pc to ec2"
-        # ssh
+        # http mattermost
         - IpProtocol: tcp
-          FromPort: 22 # ２つセット？通常は同じにしておこう
-          ToPort: 22 # ２つセット？通常は同じにしておこう
+          FromPort: 8065 # ２つセット？通常は同じにしておこう
+          ToPort: 8065 # ２つセット？通常は同じにしておこう
+          CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
+          Description: "http from pc to ec2"
+        # test用
+        - IpProtocol: tcp
+          FromPort: 80 # ２つセット？通常は同じにしておこう
+          ToPort: 80 # ２つセット？通常は同じにしておこう
           CidrIp: !Ref MyIP # sshのアクセスを自宅のIPからに限定する
-          Description: "ssh from pc to ec2"
+          Description: "http test from pc to ec2"
       Tags:
       - Key: Name
         Value: securitygroup-server
@@ -705,7 +711,7 @@ Resources:
         - TargetGroupArn: !Ref TargetGroup
           Type: forward
       LoadBalancerArn: !Ref InternetALB
-      
+
   # ホストゾーンにALBを追加    
   Route53RecordSet:
     Type: "AWS::Route53::RecordSet"
