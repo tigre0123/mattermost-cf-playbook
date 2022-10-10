@@ -501,7 +501,7 @@ Resources:
         - Name: "jagisama.com"
           ResourceRecords:
             # 通常のパブリック IPv4 アドレス
-            - !ImportValue alb-hostzoneid
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-public-ip" }
           Type: A
           TTL: 300
 
@@ -716,7 +716,7 @@ Outputs: # ファイルの最後に書かないとエラーかもしれない
     #Export:
     #  Name: mattermostip # ハイフンは使えないらしい
     Export:
-      Name: "alb-hostzoneid"
+      Name: !Sub "${PJPrefix}-public-ip"
 # PublicDNS
   mattermostEC2PublicDnsName:
     Value: !GetAtt mattermostEC2.PublicDnsName
