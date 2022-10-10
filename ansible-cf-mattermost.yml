@@ -489,11 +489,24 @@ Resources:
           Value: !FindInMap [ !Ref Environment, mattermostEC2, HostName ]
         - Key: 'mattermost' # 意味がわからないが、サンプルにある
           Value: 'yes' # タグをみてこのインスタンスはmattermostを使っている（yes)とわかってもらいたいかもしれない
+  
+  # 既存のEIPをインスタンスに割り当てる
+  # IPAssoc:
+  #   Type: AWS::EC2::EIPAssociation
+  #   Properties:
+  #     InstanceId: !Ref mattermostEC2
+  #     EIP: 54.199.124.245 
+
+  # 既存のEIPをインスタンスに割り当てる
+  ElasticIP:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: vpc
   IPAssoc:
     Type: AWS::EC2::EIPAssociation
     Properties:
       InstanceId: !Ref mattermostEC2
-      EIP: 54.199.124.245 # 既存のEIPを割り当てる
+      EIP: !Ref ElasticIP
   # AnsibleAssociationmattermost:
   #   Type: AWS::SSM::Association
   #   Properties:
@@ -535,73 +548,73 @@ Resources:
 # RDS Setting MYSQL
 # https://none06.hatenadiary.org/entry/2021/06/19/124543
 # ------------------------------------------------------------#
-  DBSubnetGroup:
-    Type: AWS::RDS::DBSubnetGroup
-    Properties:
-      DBSubnetGroupDescription: DBSubnetGroup
-      DBSubnetGroupName: dbsubnetgroup
-      SubnetIds: # 指定は2つ必要
-      - !Ref PublicSubnetA
-      - !Ref PublicSubnetC
-      Tags:
-      - Key: Name
-        Value: dbsubnetgroup
-  DBSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: SecurityGroup
-      SecurityGroupIngress:
-      # - CidrIp: 0.0.0.0/0
-      # https://qiita.com/yz2cm/items/2448f1545fef406ce8e3
-      - SourceSecurityGroupId: !Ref mattermostSecurityGroupSERVER
-        FromPort: 3306
-        IpProtocol: tcp
-        ToPort: 3306
-        Description: "tcp from ec2 to rds"
-      VpcId: !Ref VPC
-      Tags:
-      - Key: Name
-        Value: securitygroup-db
-  DBClusterParameterGroup:
-    Type: AWS::RDS::DBClusterParameterGroup
-    Properties:
-      Description: DBCluster
-      Family: aurora-mysql5.7
-      Parameters:
-        time_zone: Asia/Tokyo
-  DBCluster:
-    Type: AWS::RDS::DBCluster
-    Properties:
-      DBClusterIdentifier: dbcluster
-      DBClusterParameterGroupName: !Ref DBClusterParameterGroup
-      DBSubnetGroupName: !Ref DBSubnetGroup
-      DatabaseName: db
-      Engine: aurora-mysql
-      EngineVersion: !Ref EngineVersion
-      MasterUserPassword: !Ref DBMasterUserPassword
-      MasterUsername: !Ref DBMasterUserName
-      VpcSecurityGroupIds:
-      - !Ref DBSecurityGroup
-      Tags:
-      - Key: Name
-        Value: dbcluster
-    DeletionPolicy: Delete
-  DBInstance1:
-    Type: AWS::RDS::DBInstance
-    Properties:
-      # DBInstanceIdentifier: !Ref DBInstanceName
-      # AllocatedStorage: !Ref DBInstanceStorageSize
-      # StorageType: !Ref DBInstanceStorageType
-      # DBName: !Ref DBName
-      DBClusterIdentifier: !Ref DBCluster
-      DBInstanceClass: !Ref InstanceClass
-      Engine: aurora-mysql
-      AvailabilityZone: !Select
-        - 0 # 配列の番号。配列[ap-northeast-1a, ap-northeast-1c, ap-northeast-1d]　らしい
-        - Fn::GetAZs: !Ref AWS::Region
-      Tags:
-      - Key: Name
-        Value: mattermost-db1
+  # DBSubnetGroup:
+  #   Type: AWS::RDS::DBSubnetGroup
+  #   Properties:
+  #     DBSubnetGroupDescription: DBSubnetGroup
+  #     DBSubnetGroupName: dbsubnetgroup
+  #     SubnetIds: # 指定は2つ必要
+  #     - !Ref PublicSubnetA
+  #     - !Ref PublicSubnetC
+  #     Tags:
+  #     - Key: Name
+  #       Value: dbsubnetgroup
+  # DBSecurityGroup:
+  #   Type: AWS::EC2::SecurityGroup
+  #   Properties:
+  #     GroupDescription: SecurityGroup
+  #     SecurityGroupIngress:
+  #     # - CidrIp: 0.0.0.0/0
+  #     # https://qiita.com/yz2cm/items/2448f1545fef406ce8e3
+  #     - SourceSecurityGroupId: !Ref mattermostSecurityGroupSERVER
+  #       FromPort: 3306
+  #       IpProtocol: tcp
+  #       ToPort: 3306
+  #       Description: "tcp from ec2 to rds"
+  #     VpcId: !Ref VPC
+  #     Tags:
+  #     - Key: Name
+  #       Value: securitygroup-db
+  # DBClusterParameterGroup:
+  #   Type: AWS::RDS::DBClusterParameterGroup
+  #   Properties:
+  #     Description: DBCluster
+  #     Family: aurora-mysql5.7
+  #     Parameters:
+  #       time_zone: Asia/Tokyo
+  # DBCluster:
+  #   Type: AWS::RDS::DBCluster
+  #   Properties:
+  #     DBClusterIdentifier: dbcluster
+  #     DBClusterParameterGroupName: !Ref DBClusterParameterGroup
+  #     DBSubnetGroupName: !Ref DBSubnetGroup
+  #     DatabaseName: db
+  #     Engine: aurora-mysql
+  #     EngineVersion: !Ref EngineVersion
+  #     MasterUserPassword: !Ref DBMasterUserPassword
+  #     MasterUsername: !Ref DBMasterUserName
+  #     VpcSecurityGroupIds:
+  #     - !Ref DBSecurityGroup
+  #     Tags:
+  #     - Key: Name
+  #       Value: dbcluster
+  #   DeletionPolicy: Delete
+  # DBInstance1:
+  #   Type: AWS::RDS::DBInstance
+  #   Properties:
+  #     # DBInstanceIdentifier: !Ref DBInstanceName
+  #     # AllocatedStorage: !Ref DBInstanceStorageSize
+  #     # StorageType: !Ref DBInstanceStorageType
+  #     # DBName: !Ref DBName
+  #     DBClusterIdentifier: !Ref DBCluster
+  #     DBInstanceClass: !Ref InstanceClass
+  #     Engine: aurora-mysql
+  #     AvailabilityZone: !Select
+  #       - 0 # 配列の番号。配列[ap-northeast-1a, ap-northeast-1c, ap-northeast-1d]　らしい
+  #       - Fn::GetAZs: !Ref AWS::Region
+  #     Tags:
+  #     - Key: Name
+  #       Value: mattermost-db1
 # ------------------------------------------------------------#
 # Output Parameters
 # ------------------------------------------------------------#
