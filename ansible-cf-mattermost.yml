@@ -490,6 +490,21 @@ Resources:
         - Key: 'mattermost' # 意味がわからないが、サンプルにある
           Value: 'yes' # タグをみてこのインスタンスはmattermostを使っている（yes)とわかってもらいたいかもしれない
   
+  # ホストゾーンのjagisama.comにインスタンスのpublicIPのレコードを追加
+  route53RSGroup:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      # 手動で作ったホストゾーンのID
+      HostedZoneId: "Z085281613VEN9LFDFEPX"
+      # ここからレコードの作成部分
+      RecordSets:
+        - Name: "jagisama.com"
+          ResourceRecords:
+            # 通常のパブリック IPv4 アドレス
+            - !ImportValue mattermost_ec2_publicip
+          Type: A
+          TTL: 300
+
   # 既存のEIPをインスタンスに割り当てる
   # IPAssoc:
   #   Type: AWS::EC2::EIPAssociation
@@ -497,16 +512,17 @@ Resources:
   #     InstanceId: !Ref mattermostEC2
   #     EIP: 54.199.124.245 
 
-  # 既存のEIPをインスタンスに割り当てる
-  ElasticIP:
-    Type: "AWS::EC2::EIP"
-    Properties:
-      Domain: vpc
-  IPAssoc:
-    Type: AWS::EC2::EIPAssociation
-    Properties:
-      InstanceId: !Ref mattermostEC2
-      EIP: !Ref ElasticIP
+  # 新規のEIPをインスタンスに割り当てる
+  # ElasticIP:
+  #   Type: "AWS::EC2::EIP"
+  #   Properties:
+  #     Domain: vpc
+  # IPAssoc:
+  #   Type: AWS::EC2::EIPAssociation
+  #   Properties:
+  #     InstanceId: !Ref mattermostEC2
+  #     EIP: !Ref ElasticIP
+
   # AnsibleAssociationmattermost:
   #   Type: AWS::SSM::Association
   #   Properties:
@@ -697,7 +713,8 @@ Outputs: # ファイルの最後に書かないとエラーかもしれない
   mattermostEC2PublicIP:
     Value: !GetAtt mattermostEC2.PublicIp
     Description: Public IP of mattermost EC2 instance
-
+    Export:
+      Name: mattermost_ec2_publicip
 # PublicDNS
   mattermostEC2PublicDnsName:
     Value: !GetAtt mattermostEC2.PublicDnsName
