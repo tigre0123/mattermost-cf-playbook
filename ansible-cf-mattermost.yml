@@ -501,7 +501,7 @@ Resources:
         - Name: "jagisama.com"
           ResourceRecords:
             # 通常のパブリック IPv4 アドレス
-            - !ImportValue mattermost_ec2_publicip
+            - !ImportValue mattermostip
           Type: A
           TTL: 300
 
@@ -714,7 +714,7 @@ Outputs: # ファイルの最後に書かないとエラーかもしれない
     Value: !GetAtt mattermostEC2.PublicIp
     Description: Public IP of mattermost EC2 instance
     Export:
-      Name: mattermost_ec2_publicip
+      Name: mattermostip # ハイフンは使えないらしい
 # PublicDNS
   mattermostEC2PublicDnsName:
     Value: !GetAtt mattermostEC2.PublicDnsName
