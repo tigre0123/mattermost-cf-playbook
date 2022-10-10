@@ -490,20 +490,24 @@ Resources:
         - Key: 'mattermost' # 意味がわからないが、サンプルにある
           Value: 'yes' # タグをみてこのインスタンスはmattermostを使っている（yes)とわかってもらいたいかもしれない
   
+  # ホストゾーンのjagisama.comにALPのレコードを追加
+  # https://cloud5.jp/cf-route53/
+
+
   # ホストゾーンのjagisama.comにインスタンスのpublicIPのレコードを追加
-  route53RSGroup:
-    Type: AWS::Route53::RecordSetGroup
-    Properties:
-      # 手動で作ったホストゾーンのID
-      HostedZoneId: "Z085281613VEN9LFDFEPX"
-      # ここからレコードの作成部分
-      RecordSets:
-        - Name: "jagisama.com"
-          ResourceRecords:
-            # 通常のパブリック IPv4 アドレス
-            - !GetAtt mattermostEC2.PublicIp
-          Type: A
-          TTL: 300
+  # route53RSGroup:
+  #   Type: AWS::Route53::RecordSetGroup
+  #   Properties:
+  #     # 手動で作ったホストゾーンのID
+  #     HostedZoneId: "Z085281613VEN9LFDFEPX"
+  #     # ここからレコードの作成部分
+  #     RecordSets:
+  #       - Name: "jagisama.com"
+  #         ResourceRecords:
+  #           # 通常のパブリック IPv4 アドレス
+  #           - !GetAtt mattermostEC2.PublicIp
+  #         Type: A
+  #         TTL: 300
 
   # 既存のEIPをインスタンスに割り当てる
   # IPAssoc:
@@ -631,6 +635,89 @@ Resources:
   #     Tags:
   #     - Key: Name
   #       Value: mattermost-db1
+
+
+  # ------------------------------------------------------------#
+  # ALB Setting 
+  # https://zenn.dev/ano/articles/476e95b3c91164
+  # これを動かすとALBができる。ALBにはインスタンス１台いる -> OK
+  # ホストゾーンに追加される。 -> NG
+  # ------------------------------------------------------------#
+  #
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: mattermost-Security-Group-ALB
+      GroupDescription: Used ALB
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
+          Description: "http from pc to ALB"
+      Tags:
+        - Key: Name
+          Value: mattermost-Security-Group-ALB
+ 
+  TargetGroup: 
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties: 
+      VpcId: !Ref VPC
+      Name: mattermost-ALB-TAGETGROUP
+      Protocol: HTTP
+      Port: 80
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: /
+      HealthCheckPort: traffic-port
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 2
+      HealthCheckTimeoutSeconds: 5
+      HealthCheckIntervalSeconds: 30
+      Matcher: 
+        HttpCode: 200
+      Targets: 
+        - Id: !Ref mattermostEC2
+          Port: 80
+          
+  InternetALB: 
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      Name: mattermost-ALB
+      Scheme: internet-facing
+      LoadBalancerAttributes: 
+        - Key: deletion_protection.enabled
+          Value: false
+        - Key: idle_timeout.timeout_seconds
+          Value: 4000
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+      Subnets: 
+        - !Ref PublicSubnetA
+        - !Ref PublicSubnetC
+        
+  ALBListenerHTTP: 
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties: 
+      Port: 80
+      Protocol: HTTP
+      DefaultActions: 
+        - TargetGroupArn: !Ref TargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref InternetALB
+      
+  # ホストゾーンにALBを追加    
+  Route53RecordSet:
+    Type: "AWS::Route53::RecordSet"
+    Properties:
+      Name: "jagisama.com"
+      Type: "A"
+      AliasTarget: 
+        HostedZoneId: !GetAtt InternetALB.CanonicalHostedZoneID
+        DNSName: !GetAtt InternetALB.DNSName
+        EvaluateTargetHealth: true
+      HostedZoneId: "Z085281613VEN9LFDFEPX"
+
 # ------------------------------------------------------------#
 # Output Parameters
 # ------------------------------------------------------------#
@@ -688,7 +775,7 @@ Outputs: # ファイルの最後に書かないとエラーかもしれない
     Export:
       Name: !Sub "${PJPrefix}-private-subnet-c-cidr"
 
-# Route
+  # Route
   PublicRouteTableA:
     Value: !Ref PublicRouteTableA
     Export:
@@ -709,13 +796,18 @@ Outputs: # ファイルの最後に書かないとエラーかもしれない
     Export:
       Name: !Sub "${PJPrefix}-private-route-c"
 
-# PublicIP
+  # PublicIP
   mattermostEC2PublicIP:
+    # PublicIpはこれを見るとわかる。return vaule https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html
     Value: !GetAtt mattermostEC2.PublicIp
     Description: Public IP of mattermost EC2 instance
     Export:
       Name: !Sub "${PJPrefix}-mattermostec2publicip" # この変数はstackが終了しないとセットされない。使うにはstackを分割しないと使えない
-# PublicDNS
+  # PublicDNS
   mattermostEC2PublicDnsName:
     Value: !GetAtt mattermostEC2.PublicDnsName
     Description: Public DNS of mattermost EC2 instance
+
+  HTTPWebSiteURL:
+    Value: !GetAtt InternetALB.DNSName
+    Description: ex) testalb-216664635.ap-northeast-1.elb.amazonaws.com
