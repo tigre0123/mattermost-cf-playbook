@@ -723,7 +723,7 @@ Resources:
       LoadBalancerArn: !Ref InternetALB
 
   # ヘルスチェック用、nginxテスト用      
-  ALBListenerHTTP: 
+  ALBListenerHTTP2: 
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties: 
       Port: 8065
