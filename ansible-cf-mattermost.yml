@@ -455,14 +455,14 @@ Resources:
           FromPort: 8065
           ToPort: 8065
           # CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
-          CidrIp: !Ref "ALBSecurityGroup"
+          SourceSecurityGroupId: !Ref "ALBSecurityGroup"
           Description: "http from pc to ec2"
         # ヘルスチェックとnginxテスト用
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
           # CidrIp: !Ref MyIP # sshのアクセスを自宅のIPからに限定する
-          CidrIp: !Ref "ALBSecurityGroup"
+          SourceSecurityGroupId: !Ref "ALBSecurityGroup"
           Description: "http test from pc to ec2"
         # ssh
         - IpProtocol: tcp
