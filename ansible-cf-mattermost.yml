@@ -381,7 +381,7 @@ Resources:
     Properties: 
       SubnetId: !Ref PrivateSubnetC
       RouteTableId: !Ref PrivateRouteTableC
-
+# 
 # ------------------------------------------------------------#
 #  S３の利用設定。実行時のログをS3にアップロードするための設定と思われる。おそらく固定でよい。
 #  https://github.com/aws-samples/aws-systems-manager-cloudformation-samples/blob/main/cloudformation-samples/AnsibleAssociation.yaml#L14-L63
