@@ -458,12 +458,12 @@ Resources:
           SourceSecurityGroupId: !Ref "ALBSecurityGroup"
           Description: "http from pc to ec2"
         # ヘルスチェックとnginxテスト用
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          # CidrIp: !Ref MyIP # sshのアクセスを自宅のIPからに限定する
-          SourceSecurityGroupId: !Ref "ALBSecurityGroup"
-          Description: "http test from pc to ec2"
+        # - IpProtocol: tcp
+        #   FromPort: 80
+        #   ToPort: 80
+        #   # CidrIp: !Ref MyIP # sshのアクセスを自宅のIPからに限定する
+        #   SourceSecurityGroupId: !Ref "ALBSecurityGroup"
+        #   Description: "http test from pc to ec2"
         # ssh
         - IpProtocol: tcp
           FromPort: 22
@@ -660,11 +660,11 @@ Resources:
       GroupDescription: Used ALB
       VpcId: !Ref VPC
       SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
-          Description: "http from pc to ALB"
+        # - IpProtocol: tcp
+        #   FromPort: 80
+        #   ToPort: 80
+        #   CidrIp: 0.0.0.0/0
+        #   Description: "http from pc to ALB"
         - IpProtocol: tcp
           FromPort: 8065
           ToPort: 8065
@@ -681,7 +681,7 @@ Resources:
       VpcId: !Ref VPC
       Name: mattermost-ALB-TAGETGROUP
       Protocol: HTTP
-      Port: 80
+      Port: 8065
       HealthCheckProtocol: HTTP
       HealthCheckPath: /index.html # 後で変えようかな status.html
       HealthCheckPort: traffic-port
@@ -692,8 +692,6 @@ Resources:
       Matcher: 
         HttpCode: 200
       Targets: 
-        - Id: !Ref mattermostEC2
-          Port: 80
         - Id: !Ref mattermostEC2
           Port: 8065    
   InternetALB: 
@@ -712,16 +710,16 @@ Resources:
         - !Ref PublicSubnetA
         - !Ref PublicSubnetC
 
-  # ヘルスチェック用、nginxテスト用      
-  ALBListenerHTTP: 
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties: 
-      Port: 80
-      Protocol: HTTP
-      DefaultActions: 
-        - TargetGroupArn: !Ref TargetGroup
-          Type: forward
-      LoadBalancerArn: !Ref InternetALB
+  # # ヘルスチェック用、nginxテスト用      
+  # ALBListenerHTTP: 
+  #   Type: AWS::ElasticLoadBalancingV2::Listener
+  #   Properties: 
+  #     Port: 80
+  #     Protocol: HTTP
+  #     DefaultActions: 
+  #       - TargetGroupArn: !Ref TargetGroup
+  #         Type: forward
+  #     LoadBalancerArn: !Ref InternetALB
 
   # ヘルスチェック用、nginxテスト用      
   ALBListenerHTTP2: 
