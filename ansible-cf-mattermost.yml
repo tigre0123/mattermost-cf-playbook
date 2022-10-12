@@ -652,7 +652,7 @@ Resources:
   # ホストゾーンに追加される。 -> OK
   # ------------------------------------------------------------#
   #
-  # ALBのアクセスは80と8065だけ許可する。
+  # ALBのアクセスは8065だけ許可する。
   ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -692,8 +692,7 @@ Resources:
       Matcher: 
         HttpCode: 200
       Targets: 
-        - Id: !Ref mattermostEC2
-          Port: 8065    
+        - Id: !Ref mattermostEC2 
   InternetALB: 
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties: 
