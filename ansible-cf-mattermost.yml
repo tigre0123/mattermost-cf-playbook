@@ -455,7 +455,7 @@ Resources:
           FromPort: 8065 # ２つセット？通常は同じにしておこう
           ToPort: 8065 # ２つセット？通常は同じにしておこう
           # CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
-          SourceSecurityGroupId: !Ref "ALBSecurFityGroup"
+          SourceSecurityGroupId: !Ref "ALBSecurityGroup"
           Description: "http from pc to ec2"
         # ssh
         - IpProtocol: tcp
