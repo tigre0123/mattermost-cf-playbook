@@ -694,7 +694,8 @@ Resources:
       Targets: 
         - Id: !Ref mattermostEC2
           Port: 80
-          
+        - Id: !Ref mattermostEC2
+          Port: 8065    
   InternetALB: 
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties: 
