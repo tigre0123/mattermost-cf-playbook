@@ -454,7 +454,8 @@ Resources:
         - IpProtocol: tcp
           FromPort: 8065 # ２つセット？通常は同じにしておこう
           ToPort: 8065 # ２つセット？通常は同じにしておこう
-          CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
+          # CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
+          SourceSecurityGroupId: !Ref "ALBSecurityGroup"
           Description: "http from pc to ec2"
         # ssh
         - IpProtocol: tcp
@@ -686,7 +687,8 @@ Resources:
       VpcId: !Ref VPC
       Name: mattermost-ALB-TAGETGROUP
       Protocol: HTTP
-      Port: 80
+      # Port: 80
+      Port: 8065
       HealthCheckProtocol: HTTP
       HealthCheckPath: /index.html # 後で変えようかな status.html
       HealthCheckPort: traffic-port
@@ -698,7 +700,8 @@ Resources:
         HttpCode: 200
       Targets: 
         - Id: !Ref mattermostEC2
-          Port: 80
+          # Port: 80
+          Port: 8065
           
   InternetALB: 
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -719,7 +722,8 @@ Resources:
   ALBListenerHTTP: 
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties: 
-      Port: 80
+      # Port: 80
+      Port: 8065
       Protocol: HTTP
       DefaultActions: 
         - TargetGroupArn: !Ref TargetGroup
