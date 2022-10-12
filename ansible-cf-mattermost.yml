@@ -700,8 +700,8 @@ Resources:
         HttpCode: 200
       Targets: 
         - Id: !Ref mattermostEC2
-          Port: 80
-          # Port: 8065
+          # Port: 80
+          Port: 8065
           
   InternetALB: 
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -719,33 +719,33 @@ Resources:
         - !Ref PublicSubnetA
         - !Ref PublicSubnetC
         
-  # ALBListenerHTTP: 
-  #   Type: AWS::ElasticLoadBalancingV2::Listener
-  #   Properties: 
-  #     Port: 80
-  #     # Port: 8065
-  #     Protocol: HTTP
-  #     DefaultActions: 
-  #       - TargetGroupArn: !Ref TargetGroup
-  #         Type: forward
-  #     LoadBalancerArn: !Ref InternetALB
+  ALBListenerHTTP: 
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties: 
+      Port: 80
+      # Port: 8065
+      Protocol: HTTP
+      DefaultActions: 
+        - TargetGroupArn: !Ref TargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref InternetALB
 
   # HTTP通信のリスナー設定  
-  ALBListenerHTTP:
-     Type: "AWS::ElasticLoadBalancingV2::Listener"
-     Properties:
-       DefaultActions:
-         - Type: "redirect"
-           RedirectConfig:
-             Protocol: "HTTP"
-             Port: "8065"
-             Host: "#{host}"
-             Path: "/#{path}"
-             Query: "#{query}"
-             StatusCode: "HTTP_301"
-       LoadBalancerArn: !Ref "InternetALB"
-       Port: "80"
-       Protocol: "HTTP"
+  # ALBListenerHTTP:
+  #    Type: "AWS::ElasticLoadBalancingV2::Listener"
+  #    Properties:
+  #      DefaultActions:
+  #        - Type: "redirect"
+  #          RedirectConfig:
+  #            Protocol: "HTTP"
+  #            Port: "8065"
+  #           #  Host: "#{host}"
+  #           #  Path: "/#{path}"
+  #           #  Query: "#{query}"
+  #            StatusCode: "HTTP_301"
+  #      LoadBalancerArn: !Ref "InternetALB"
+  #      Port: "80"
+  #      Protocol: "HTTP"
 
   # ホストゾーンにALBを追加    
   Route53RecordSet:
