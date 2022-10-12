@@ -439,10 +439,10 @@ Resources:
 
 # ここまでは上記固定の書き方で問題ない
 
- # ------------------------------------------------------------#
- # セキュリティグループ Setting
- # ------------------------------------------------------------#
-  # EC2へのアクセスはALBのセキュリティグループとsshアクセス用の許可を設定
+# ------------------------------------------------------------#
+# セキュリティグループ Setting
+# ------------------------------------------------------------#
+
   mattermostSecurityGroupSERVER: # 英数字のみ
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -451,24 +451,23 @@ Resources:
       VpcId: !Ref VPC
       SecurityGroupIngress:
         # http mattermost
-        # - IpProtocol: tcp
-        #   FromPort: 8065
-        #   ToPort: 8065
-        #   # CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
-        #   SourceSecurityGroupId: !Ref "ALBSecurityGroup"
-        #   Description: "http from pc to ec2"
-        # ヘルスチェックとnginxテスト用
         - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: !Ref MyIP # sshのアクセスを自宅のIPからに限定する
-          # SourceSecurityGroupId: !Ref "ALBSecurityGroup"
-          Description: "http test from pc to ec2"
+          FromPort: 8065 # ２つセット？通常は同じにしておこう
+          ToPort: 8065 # ２つセット？通常は同じにしておこう
+          CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
+          Description: "http from pc to ec2"
         # ssh
         - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
+          FromPort: 22 # ２つセット？通常は同じにしておこう
+          ToPort: 22 # ２つセット？通常は同じにしておこう
           CidrIp: !Ref MyIP # sshのアクセスを自宅のIPからに限定する
+          Description: "http test from pc to ec2"
+        # test
+        - IpProtocol: tcp
+          FromPort: 80 # ２つセット？通常は同じにしておこう
+          ToPort: 80 # ２つセット？通常は同じにしておこう
+          # CidrIp: !Ref MyIP # sshのアクセスを自宅のIPからに限定する
+          CidrIp: 0.0.0.0/0 # sshのアクセスを自宅のIPからに限定する
           Description: "http test from pc to ec2"
       Tags:
       - Key: Name
@@ -652,7 +651,7 @@ Resources:
   # ホストゾーンに追加される。 -> OK
   # ------------------------------------------------------------#
   #
-  # ALBのアクセスは8065だけ許可する。
+  # ALBのアクセスは80と8065だけ許可する。
   ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -665,11 +664,11 @@ Resources:
           ToPort: 80
           CidrIp: 0.0.0.0/0
           Description: "http from pc to ALB"
-        # - IpProtocol: tcp
-        #   FromPort: 8065
-        #   ToPort: 8065
-        #   CidrIp: 0.0.0.0/0 
-        #   Description: "http from pc to ALB"
+        - IpProtocol: tcp
+          FromPort: 8065
+          ToPort: 8065
+          CidrIp: 0.0.0.0/0 
+          Description: "http from pc to ALB"
       Tags:
         - Key: Name
           Value: mattermost-Security-Group-ALB
@@ -682,7 +681,6 @@ Resources:
       Name: mattermost-ALB-TAGETGROUP
       Protocol: HTTP
       Port: 80
-      # Port: 8065
       HealthCheckProtocol: HTTP
       HealthCheckPath: /index.html # 後で変えようかな status.html
       HealthCheckPort: traffic-port
@@ -693,7 +691,9 @@ Resources:
       Matcher: 
         HttpCode: 200
       Targets: 
-        - Id: !Ref mattermostEC2 
+        - Id: !Ref mattermostEC2
+          Port: 80
+          
   InternetALB: 
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties: 
@@ -709,8 +709,7 @@ Resources:
       Subnets: 
         - !Ref PublicSubnetA
         - !Ref PublicSubnetC
-
-  # # ヘルスチェック用、nginxテスト用      
+        
   ALBListenerHTTP: 
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties: 
@@ -720,17 +719,6 @@ Resources:
         - TargetGroupArn: !Ref TargetGroup
           Type: forward
       LoadBalancerArn: !Ref InternetALB
-
-  # ヘルスチェック用、nginxテスト用      
-  # ALBListenerHTTP2: 
-  #   Type: AWS::ElasticLoadBalancingV2::Listener
-  #   Properties: 
-  #     Port: 8065
-  #     Protocol: HTTP
-  #     DefaultActions: 
-  #       - TargetGroupArn: !Ref TargetGroup
-  #         Type: forward
-  #     LoadBalancerArn: !Ref InternetALB
 
   # ホストゾーンにALBを追加    
   Route53RecordSet:
