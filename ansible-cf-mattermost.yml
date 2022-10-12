@@ -467,7 +467,8 @@ Resources:
           FromPort: 80 # ２つセット？通常は同じにしておこう
           ToPort: 80 # ２つセット？通常は同じにしておこう
           # CidrIp: !Ref MyIP # sshのアクセスを自宅のIPからに限定する
-          CidrIp: 0.0.0.0/0 # sshのアクセスを自宅のIPからに限定する
+          # CidrIp: 0.0.0.0/0 # sshのアクセスを自宅のIPからに限定する
+          SourceSecurityGroupId: !Ref "ALBSecurityGroup"
           Description: "http test from pc to ec2"
       Tags:
       - Key: Name
