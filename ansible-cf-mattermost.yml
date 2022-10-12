@@ -497,6 +497,25 @@ Resources:
         Fn::Base64: | 
            #!/bin/bash -xe
            amazon-linux-extras install nginx1 -y
+           
+           mkdir -p /usr/share/nginx/domain_test_html
+           cp -R /usr/share/nginx/html/. /usr/share/nginx/domain_test_html/
+
+           tee /etc/nginx/conf.d/domain_test.conf <<EOF >/dev/null
+           server {
+               listen       8065;
+               server_name  jagisama.com;
+
+               charset UTF-8;
+               access_log  /var/log/nginx/jagisama.com.access.log  main;
+
+               location / {
+                   root   /usr/share/nginx/domain_test_html;
+                   index  index.html index.htm;
+                   try_files $uri $uri/ @rewrite;
+               }
+           }
+           EOF
            systemctl start nginx
       Tags:
         - Key: Name # マネジメントコンソールに表示されるEC2の名前だと思う
@@ -691,7 +710,7 @@ Resources:
       Port: 8065
       HealthCheckProtocol: HTTP
       HealthCheckPath: /index.html # 後で変えようかな status.html
-      HealthCheckPort: traffic-port
+      HealthCheckPort: traffic-port # たぶんportと同じになる
       HealthyThresholdCount: 5
       UnhealthyThresholdCount: 2
       HealthCheckTimeoutSeconds: 5
