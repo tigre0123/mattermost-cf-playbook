@@ -455,7 +455,7 @@ Resources:
           FromPort: 8065 # ２つセット？通常は同じにしておこう
           ToPort: 8065 # ２つセット？通常は同じにしておこう
           # CidrIp: !Ref MyIP # httpのアクセスを自宅のIPからに限定する
-          SourceSecurityGroupId: !Ref "ALBSecurityGroup"
+          SourceSecurityGroupId: !Ref "ALBSecurFityGroup"
           Description: "http from pc to ec2"
         # ssh
         - IpProtocol: tcp
@@ -687,8 +687,8 @@ Resources:
       VpcId: !Ref VPC
       Name: mattermost-ALB-TAGETGROUP
       Protocol: HTTP
-      Port: 80
-      # Port: 8065
+      # Port: 80
+      Port: 8065
       HealthCheckProtocol: HTTP
       HealthCheckPath: /index.html # 後で変えようかな status.html
       HealthCheckPort: traffic-port # たぶんportと同じになる
