@@ -68,6 +68,12 @@ Metadata: # 入力パラメータが多いとき、Metadataを使って入力し
         default: "DBPassword"
       MultiAZ:
         default: "MultiAZ"
+      DomainName:
+        default: "DomainName"
+      SubDomainName:
+        default: "SubDomainName"
+      HostedZoneId:
+        default: "HostedZoneId"
 # ------------------------------------------------------------#
 # Input Parameters(Instance)
 # ------------------------------------------------------------# 
@@ -168,7 +174,16 @@ Parameters:
     Default: "false"
     Type: String
     AllowedValues: [ "true", "false" ]
-
+  DomainName:
+    Type: String
+    Default: "*.jagisama.com"
+  SubDomainName:
+    Type: String
+    Default: "toki.jagisama.com"
+  HostedZoneId: # ホストゾーンのIDです。手動で事前に作成しておく必要があります。自動化不可
+    Type: String
+    Default: "Z085281613VEN9LFDFEPX"
+    
   # DBMasterUserName:
   #   Type: String
   #   Default: admin
@@ -759,32 +774,39 @@ Resources:
   Route53RecordSet:
     Type: "AWS::Route53::RecordSet"
     Properties:
-      Name: "toki.jagisama.com"
+      # Name: "toki.jagisama.com"
+      Name: !Sub "${SubDomainName}"
       Type: "A"
       AliasTarget: 
         HostedZoneId: !GetAtt InternetALB.CanonicalHostedZoneID
         DNSName: !GetAtt InternetALB.DNSName
         EvaluateTargetHealth: true
-      HostedZoneId: "Z085281613VEN9LFDFEPX"
+      # HostedZoneId: "Z085281613VEN9LFDFEPX"
+      HostedZoneId: !Sub "${HostedZoneId}"
 
 
   # ------------------------------------------------------------#
   #  ACM
   # ------------------------------------------------------------#
+  # CNAMEの設定が見えないが、手動で実施しているときのようなCNAMEも自動で入れてくれた。でもスタック削除で消えない
   ACM:
     Type: AWS::CertificateManager::Certificate
     Properties:
       # 証明書を取得するドメイン名を設定します。 (パラメータで入力したドメイン名が入ります。)
-      DomainName: "*.jagisama.com"
+      # DomainName: "*.jagisama.com"
+      DomainName: !Sub "${DomainName}"
       # DNS検証を行うドメインを設定します。 (上記同様にドメイン名が入ります。)
       DomainValidationOptions:
-        - DomainName: "*.jagisama.com"
+        # - DomainName: "*.jagisama.com"
+        - DomainName: !Sub "${DomainName}"
           # Route53のホストゾーンIDをインポートして読み込みます。 (別スタックでアウトプットしておく必要有)
-          HostedZoneId: "Z085281613VEN9LFDFEPX"
+          # HostedZoneId: "Z085281613VEN9LFDFEPX"
+          HostedZoneId: !Sub "${HostedZoneId}"
       # 追加で取得したい証明書を設定します。 (今回はワイルドカード証明書を取得します。)
       SubjectAlternativeNames:
         # ワイルドカードを取得する場合は、ドメイン名の手前に*.をつけます。
-        - !Sub "*.jagisama.com"
+        # - !Sub "*.jagisama.com"
+        - !Sub "${DomainName}"
       # 検証方法はDNSを指定します。
       ValidationMethod: DNS
 
