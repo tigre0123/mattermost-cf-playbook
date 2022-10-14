@@ -658,7 +658,7 @@ Resources:
   # ホストゾーンに追加される。 -> OK
   # ------------------------------------------------------------#
   #
-  # ALBのアクセスは80と8065だけ許可する。
+  # ALBのアクセスは80,443だけ許可する。
   ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -670,7 +670,12 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
-          Description: "http from pc to ALB"
+          Description: "http from pc to ALB. redirect https"
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: "https from pc to ALB"
         # - IpProtocol: tcp
         #   FromPort: 8065
         #   ToPort: 8065
@@ -687,10 +692,10 @@ Resources:
       VpcId: !Ref VPC
       Name: mattermost-ALB-TAGETGROUP
       Protocol: HTTP
-      # Port: 80
-      Port: 8065
+      # ALBがターゲットサーバーへトラフィックを送るときのポート。今回のEC2はHTTP通信しかできないので80ポートを指定。
+      Port: 80
       HealthCheckProtocol: HTTP
-      HealthCheckPath: /index.html # 後で変えようかな status.html
+      HealthCheckPath: / # 後で変えようかな status.html
       HealthCheckPort: traffic-port # たぶんportと同じになる
       HealthyThresholdCount: 5
       UnhealthyThresholdCount: 2
@@ -700,8 +705,7 @@ Resources:
         HttpCode: 200
       Targets: 
         - Id: !Ref mattermostEC2
-          # Port: 80
-          Port: 8065
+          Port: 80
           
   InternetALB: 
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -719,45 +723,72 @@ Resources:
         - !Ref PublicSubnetA
         - !Ref PublicSubnetC
         
-  ALBListenerHTTP: 
+  # HTTP通信のリスナー設定  
+  ALBListenerHTTP:
+     Type: "AWS::ElasticLoadBalancingV2::Listener"
+     Properties:
+       DefaultActions:
+         - Type: "redirect"
+           RedirectConfig:
+             Protocol: "HTTPS"
+             Port: "443"
+             Host: "#{host}"
+             Path: "/#{path}"
+             Query: "#{query}"
+             StatusCode: "HTTP_301"
+       LoadBalancerArn: !Ref "InternetALB"
+       Port: "80"
+       Protocol: "HTTP"
+
+  # HTTPS通信のリスナー設定  
+  ALBListenerHTTPS: 
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties: 
-      Port: 80
-      # Port: 8065
-      Protocol: HTTP
       DefaultActions: 
         - TargetGroupArn: !Ref TargetGroup
           Type: forward
       LoadBalancerArn: !Ref InternetALB
-
-  # HTTP通信のリスナー設定  
-  # ALBListenerHTTP:
-  #    Type: "AWS::ElasticLoadBalancingV2::Listener"
-  #    Properties:
-  #      DefaultActions:
-  #        - Type: "redirect"
-  #          RedirectConfig:
-  #            Protocol: "HTTP"
-  #            Port: "8065"
-  #           #  Host: "#{host}"
-  #           #  Path: "/#{path}"
-  #           #  Query: "#{query}"
-  #            StatusCode: "HTTP_301"
-  #      LoadBalancerArn: !Ref "InternetALB"
-  #      Port: "80"
-  #      Protocol: "HTTP"
+      Port: "443"
+      Protocol: "HTTPS"
+      # SSL証明書をセット
+      Certificates: 
+        # - CertificateArn: !Ref "ALBCertificateARN"
+        - CertificateArn: !Ref "ACM"
 
   # ホストゾーンにALBを追加    
   Route53RecordSet:
     Type: "AWS::Route53::RecordSet"
     Properties:
-      Name: "jagisama.com"
+      Name: "toki.jagisama.com"
       Type: "A"
       AliasTarget: 
         HostedZoneId: !GetAtt InternetALB.CanonicalHostedZoneID
         DNSName: !GetAtt InternetALB.DNSName
         EvaluateTargetHealth: true
       HostedZoneId: "Z085281613VEN9LFDFEPX"
+
+
+  # ------------------------------------------------------------#
+  #  ACM
+  # ------------------------------------------------------------#
+  ACM:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      # 証明書を取得するドメイン名を設定します。 (パラメータで入力したドメイン名が入ります。)
+      DomainName: "*.jagisama.com"
+      # DNS検証を行うドメインを設定します。 (上記同様にドメイン名が入ります。)
+      DomainValidationOptions:
+        - DomainName: "*.jagisama.com"
+          # Route53のホストゾーンIDをインポートして読み込みます。 (別スタックでアウトプットしておく必要有)
+          HostedZoneId: "Z085281613VEN9LFDFEPX"
+      # 追加で取得したい証明書を設定します。 (今回はワイルドカード証明書を取得します。)
+      SubjectAlternativeNames:
+        # ワイルドカードを取得する場合は、ドメイン名の手前に*.をつけます。
+        - !Sub "*.jagisama.com"
+      # 検証方法はDNSを指定します。
+      ValidationMethod: DNS
+
+
 
 # ------------------------------------------------------------#
 # Output Parameters
