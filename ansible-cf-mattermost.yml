@@ -954,7 +954,8 @@ Outputs: # ファイルの最後に書かないとエラーかもしれない
     Value: !Ref PrivateRouteTableC
     Export:
       Name: !Sub "${PJPrefix}-private-route-c"
-
+  
+  # 1号機
   # PublicIP
   mattermost01EC2PublicIP:
     # PublicIpはこれを見るとわかる。return vaule https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html
@@ -962,11 +963,13 @@ Outputs: # ファイルの最後に書かないとエラーかもしれない
     Description: Public IP of mattermost01 EC2 instance
     Export:
       Name: !Sub "${PJPrefix}-mattermost01EC2publicip" # この変数はstackが終了しないとセットされない。使うにはstackを分割しないと使えない
+  
   # PublicDNS
   mattermost01EC2PublicDnsName:
     Value: !GetAtt mattermost01EC2.PublicDnsName
     Description: Public DNS of mattermost01 EC2 instance
 
+  # 2号機
   # PublicIP
   mattermost02EC2PublicIP:
     # PublicIpはこれを見るとわかる。return vaule https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html
@@ -974,15 +977,18 @@ Outputs: # ファイルの最後に書かないとエラーかもしれない
     Description: Public IP of mattermost02 EC2 instance
     Export:
       Name: !Sub "${PJPrefix}-mattermost02EC2publicip" # この変数はstackが終了しないとセットされない。使うにはstackを分割しないと使えない
+  
   # PublicDNS
   mattermost02EC2PublicDnsName:
     Value: !GetAtt mattermost02EC2.PublicDnsName
     Description: Public DNS of mattermost02 EC2 instance
 
-  HTTPWebSiteURL: # ALBのDNSです
+  # ALBのDNSです
+  HTTPWebSiteURL: 
     Value: !GetAtt InternetALB.DNSName
     Description: ex) testalb-216664635.ap-northeast-1.elb.amazonaws.com
-
+  
+  # amazon-auroraのDNSです
   DBURL:
     Value: !GetAtt DBInstance1.Endpoint.Address
     Description: ex) mattermost-dbinstance1-p6hayt1nsbds.cmx6ii0fhbpg.ap-northeast-1.rds.amazonaws.com
