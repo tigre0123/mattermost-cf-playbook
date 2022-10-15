@@ -542,7 +542,7 @@ Resources:
   
   mattermost02EC2:
     Type: AWS::EC2::Instance
-    Condition: enableMultiAz
+    # Condition: enableMultiAz
     Properties:
       KeyName: !Ref KeyName
       ImageId: !Ref LatestAmiId
@@ -783,7 +783,9 @@ Resources:
         - Id: !Ref mattermost01EC2
           # Port: 80
           Port: 8065
-          
+        - Id: !Ref mattermost02EC2
+          # Port: 80
+          Port: 8065  
   InternetALB: 
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties: 
@@ -957,13 +959,25 @@ Outputs: # ファイルの最後に書かないとエラーかもしれない
   mattermost01EC2PublicIP:
     # PublicIpはこれを見るとわかる。return vaule https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html
     Value: !GetAtt mattermost01EC2.PublicIp
-    Description: Public IP of mattermost EC2 instance
+    Description: Public IP of mattermost01 EC2 instance
     Export:
       Name: !Sub "${PJPrefix}-mattermost01EC2publicip" # この変数はstackが終了しないとセットされない。使うにはstackを分割しないと使えない
   # PublicDNS
   mattermost01EC2PublicDnsName:
     Value: !GetAtt mattermost01EC2.PublicDnsName
-    Description: Public DNS of mattermost EC2 instance
+    Description: Public DNS of mattermost01 EC2 instance
+
+  # PublicIP
+  mattermost02EC2PublicIP:
+    # PublicIpはこれを見るとわかる。return vaule https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html
+    Value: !GetAtt mattermost02EC2.PublicIp
+    Description: Public IP of mattermost02 EC2 instance
+    Export:
+      Name: !Sub "${PJPrefix}-mattermost02EC2publicip" # この変数はstackが終了しないとセットされない。使うにはstackを分割しないと使えない
+  # PublicDNS
+  mattermost02EC2PublicDnsName:
+    Value: !GetAtt mattermost02EC2.PublicDnsName
+    Description: Public DNS of mattermost02 EC2 instance
 
   HTTPWebSiteURL: # ALBのDNSです
     Value: !GetAtt InternetALB.DNSName
