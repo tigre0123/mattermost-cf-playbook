@@ -708,7 +708,7 @@ Resources:
       Protocol: HTTP
       # ALBがターゲットサーバーへトラフィックを送るときのポート。今回のEC2はHTTP通信しかできないので80ポートを指定。
       # Port: 80
-      Port: 8056
+      Port: 8065
       HealthCheckProtocol: HTTP
       HealthCheckPath: / # 後で変えようかな status.html
       HealthCheckPort: traffic-port # たぶんportと同じになる
@@ -721,7 +721,7 @@ Resources:
       Targets: 
         - Id: !Ref mattermostEC2
           # Port: 80
-          Port: 8056
+          Port: 8065
           
   InternetALB: 
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
