@@ -1,7 +1,12 @@
 #!/bin/bash
 
 # https://notepad-blog.com/content/72/
-
+# このスクリプトは1号機だけ実施します。1号機以外はexitします
+# 1号機からセットアップしないとまずい。
+if [[ $HOSTNAME != *10-1-10-100* ]]; then
+  echo "It not contains '10-1-10-100'"
+  exit 0
+fi
 echo "[INFO] 処理開始"
 CMD_MYSQL="mysql -h {{ db_endpoint }} -P 3306 -u {{ db_master_user }} --password={{ db_master_password }}"
 

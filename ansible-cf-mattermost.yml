@@ -74,6 +74,9 @@ Metadata: # 入力パラメータが多いとき、Metadataを使って入力し
         default: "SubDomainName"
       HostedZoneId:
         default: "HostedZoneId"
+      EnableMultiAz:
+        default: "EnableMultiAz"
+
 # ------------------------------------------------------------#
 # Input Parameters(Instance)
 # ------------------------------------------------------------# 
@@ -199,6 +202,13 @@ Parameters:
     Default: db.t2.small
     AllowedValues:
     - db.t2.small
+  EnableMultiAz:
+    Description: Decide whether the Aurora Cluster has a single instance or 2 instances.
+    Type: String
+    Default: false
+    AllowedValues:
+      - true # Multi-AZ相当構成。DB2台構成
+      - false # default。DB1台構成
 Mappings:
   # https://dev.classmethod.jp/articles/cloudformation-ec2-build/
   prd:
@@ -207,12 +217,24 @@ Mappings:
     OSSettings:
       Locale: ja_JP.utf8
       TimeZone: "Asia/Tokyo"
-    mattermostEC2:
-      HostName: mattermost.host
+    mattermost01EC2:
+      HostName: mattermost01.host
       PrivateIpAddress: 10.1.10.100
       InstanceType: t2.micro
       # AmiId: ami-08a8688fb7eacb171 # Amazon Linux 2 AMI (HVM) - Kernel 5.10, SSD Volume Type
       Playbook: "mattermost.yml"
+    mattermost02EC2: # stanby用
+      HostName: mattermost02.host
+      PrivateIpAddress: 10.1.20.100
+      InstanceType: t2.micro
+      # AmiId: ami-08a8688fb7eacb171 # Amazon Linux 2 AMI (HVM) - Kernel 5.10, SSD Volume Type
+      Playbook: "mattermost.yml"
+
+Conditions:
+  # isBrandNewDB: !Equals [ !Ref DBSnapshotArn, "" ]
+  # 当該値が"true"であった場合は、enableMultiAzというConditionをtrueに設定します。
+  # https://qiita.com/tmiki/items/19cc4fc71949eaafbc3a
+  enableMultiAz: !Equals [ !Ref EnableMultiAz, "true" ]
 
 
 Resources: 
@@ -492,19 +514,19 @@ Resources:
 # ------------------------------------------------------------#
 # EC2 Setting mattermost
 # ------------------------------------------------------------#         
-  mattermostEC2:
+  mattermost01EC2:
     Type: AWS::EC2::Instance
     Properties:
       KeyName: !Ref KeyName
       ImageId: !Ref LatestAmiId
-      InstanceType: !FindInMap [ !Ref Environment, mattermostEC2, InstanceType ]
+      InstanceType: !FindInMap [ !Ref Environment, mattermost01EC2, InstanceType ]
       # Monitoring: true|false
       # IamInstanceProfile: !Ref SSMInstanceProfile # ここでロールと紐付け
       NetworkInterfaces:
         - AssociatePublicIpAddress: "true" # 自動でpublic IPを取得、DNS
           DeviceIndex: "0"
           SubnetId: !Ref PublicSubnetA # PublicSubnetAに所属する
-          PrivateIpAddress: !FindInMap [ !Ref Environment, mattermostEC2, PrivateIpAddress ]
+          PrivateIpAddress: !FindInMap [ !Ref Environment, mattermost01EC2, PrivateIpAddress ]
           GroupSet:
             - !Ref mattermostSecurityGroupSERVER
       UserData:
@@ -514,10 +536,37 @@ Resources:
            systemctl start nginx
       Tags:
         - Key: Name # マネジメントコンソールに表示されるEC2の名前だと思う
-          Value: !FindInMap [ !Ref Environment, mattermostEC2, HostName ]
+          Value: !FindInMap [ !Ref Environment, mattermost01EC2, HostName ]
         - Key: 'mattermost' # 意味がわからないが、サンプルにある
           Value: 'yes' # タグをみてこのインスタンスはmattermostを使っている（yes)とわかってもらいたいかもしれない
   
+  mattermost02EC2:
+    Type: AWS::EC2::Instance
+    Condition: enableMultiAz
+    Properties:
+      KeyName: !Ref KeyName
+      ImageId: !Ref LatestAmiId
+      InstanceType: !FindInMap [ !Ref Environment, mattermost02EC2, InstanceType ]
+      # Monitoring: true|false
+      # IamInstanceProfile: !Ref SSMInstanceProfile # ここでロールと紐付け
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true" # 自動でpublic IPを取得、DNS
+          DeviceIndex: "0"
+          SubnetId: !Ref PublicSubnetC # PublicSubnetAに所属する
+          PrivateIpAddress: !FindInMap [ !Ref Environment, mattermost02EC2, PrivateIpAddress ]
+          GroupSet:
+            - !Ref mattermostSecurityGroupSERVER
+      UserData:
+        Fn::Base64: | 
+           #!/bin/bash -xe
+           amazon-linux-extras install nginx1 -y
+           systemctl start nginx
+      Tags:
+        - Key: Name # マネジメントコンソールに表示されるEC2の名前だと思う
+          Value: !FindInMap [ !Ref Environment, mattermost02EC2, HostName ]
+        - Key: 'mattermost' # 意味がわからないが、サンプルにある
+          Value: 'yes' # タグをみてこのインスタンスはmattermostを使っている（yes)とわかってもらいたいかもしれない
+
   # ホストゾーンのjagisama.comにALPのレコードを追加
   # https://cloud5.jp/cf-route53/
 
@@ -533,7 +582,7 @@ Resources:
   #       - Name: "jagisama.com"
   #         ResourceRecords:
   #           # 通常のパブリック IPv4 アドレス
-  #           - !GetAtt mattermostEC2.PublicIp
+  #           - !GetAtt mattermost01EC2.PublicIp
   #         Type: A
   #         TTL: 300
 
@@ -541,7 +590,7 @@ Resources:
   # IPAssoc:
   #   Type: AWS::EC2::EIPAssociation
   #   Properties:
-  #     InstanceId: !Ref mattermostEC2
+  #     InstanceId: !Ref mattermost01EC2
   #     EIP: 54.199.124.245 
 
   # 新規のEIPをインスタンスに割り当てる
@@ -552,7 +601,7 @@ Resources:
   # IPAssoc:
   #   Type: AWS::EC2::EIPAssociation
   #   Properties:
-  #     InstanceId: !Ref mattermostEC2
+  #     InstanceId: !Ref mattermost01EC2
   #     EIP: !Ref ElasticIP
 
   # AnsibleAssociationmattermost:
@@ -565,7 +614,7 @@ Resources:
   #     # in CloudFormation
   #     Targets:
   #       - Key: InstanceIds
-  #         Values: [ !Ref mattermostEC2 ]
+  #         Values: [ !Ref mattermost01EC2 ]
   #     OutputLocation:
   #       S3Location: 
   #         OutputS3BucketName: !Ref SSMAssocLogs
@@ -585,7 +634,7 @@ Resources:
   #         - 'True'
   #       # Playbook file we want to run
   #       PlaybookFile:
-  #         - !FindInMap [ !Ref Environment, mattermostEC2, Playbook ]
+  #         - !FindInMap [ !Ref Environment, mattermost01EC2, Playbook ]
   #       ExtraVariables:
   #         - 'SSM=True'
   #       Check:
@@ -662,9 +711,21 @@ Resources:
         - Fn::GetAZs: !Ref AWS::Region
       Tags:
       - Key: Name
-        Value: mattermost-db1
+        Value: mattermost-master
 
-
+  DBInstance2:
+    Type: AWS::RDS::DBInstance
+    Condition: enableMultiAz
+    Properties:
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceClass: !Ref InstanceClass
+      Engine: aurora-mysql
+      AvailabilityZone: !Select
+        - 1 # 配列の番号。配列[ap-northeast-1a, ap-northeast-1c, ap-northeast-1d]　らしい
+        - Fn::GetAZs: !Ref AWS::Region
+      Tags:
+      - Key: Name
+        Value: mattermost-replica
   # ------------------------------------------------------------#
   # ALB Setting 
   # https://zenn.dev/ano/articles/476e95b3c91164
@@ -719,7 +780,7 @@ Resources:
       Matcher: 
         HttpCode: 200
       Targets: 
-        - Id: !Ref mattermostEC2
+        - Id: !Ref mattermost01EC2
           # Port: 80
           Port: 8065
           
@@ -893,15 +954,15 @@ Outputs: # ファイルの最後に書かないとエラーかもしれない
       Name: !Sub "${PJPrefix}-private-route-c"
 
   # PublicIP
-  mattermostEC2PublicIP:
+  mattermost01EC2PublicIP:
     # PublicIpはこれを見るとわかる。return vaule https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html
-    Value: !GetAtt mattermostEC2.PublicIp
+    Value: !GetAtt mattermost01EC2.PublicIp
     Description: Public IP of mattermost EC2 instance
     Export:
-      Name: !Sub "${PJPrefix}-mattermostec2publicip" # この変数はstackが終了しないとセットされない。使うにはstackを分割しないと使えない
+      Name: !Sub "${PJPrefix}-mattermost01EC2publicip" # この変数はstackが終了しないとセットされない。使うにはstackを分割しないと使えない
   # PublicDNS
-  mattermostEC2PublicDnsName:
-    Value: !GetAtt mattermostEC2.PublicDnsName
+  mattermost01EC2PublicDnsName:
+    Value: !GetAtt mattermost01EC2.PublicDnsName
     Description: Public DNS of mattermost EC2 instance
 
   HTTPWebSiteURL: # ALBのDNSです
