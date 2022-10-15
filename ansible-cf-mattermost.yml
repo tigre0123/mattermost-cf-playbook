@@ -206,7 +206,7 @@ Parameters:
     Description: Decide whether the Aurora Cluster has a single instance or 2 instances.
     Type: String
     Default: false # default。DB1台構成
-    # Default: true # Multi-AZ相当構成。DB2台構成
+    # Default: true # Multi-AZ相当構成。DB2台構成。スタック作成に30分ぐらいかかるから二度と実行しない方がよい
     AllowedValues:
       - true
       - false
