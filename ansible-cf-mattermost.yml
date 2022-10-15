@@ -904,6 +904,10 @@ Outputs: # ファイルの最後に書かないとエラーかもしれない
     Value: !GetAtt mattermostEC2.PublicDnsName
     Description: Public DNS of mattermost EC2 instance
 
-  HTTPWebSiteURL:
+  HTTPWebSiteURL: # ALBのDNSです
     Value: !GetAtt InternetALB.DNSName
     Description: ex) testalb-216664635.ap-northeast-1.elb.amazonaws.com
+
+  DBURL:
+    Value: !GetAtt DBInstance1.Endpoint.Address
+    Description: ex) mattermost-dbinstance1-p6hayt1nsbds.cmx6ii0fhbpg.ap-northeast-1.rds.amazonaws.com
