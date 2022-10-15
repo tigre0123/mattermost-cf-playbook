@@ -115,4 +115,4 @@
 # https://docs.ansible.com/ansible/latest/collections/netapp/ontap/na_ontap_debug_module.html
 - name: Setup is complete
   debug:
-    msg: "See the link -> https://{{ alb_dns }}"
+    msg: "See the link -> {{ alb_dns }}"

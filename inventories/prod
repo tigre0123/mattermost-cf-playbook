@@ -1,12 +1,14 @@
 # https://docs.ansible.com/ansible/2.9_ja/user_guide/intro_inventory.html
 [mattermost]
 # インスタンス作成毎に修正が必要です。
-ec2-13-231-219-74.ap-northeast-1.compute.amazonaws.com
+# 以下にインスタンスのpublic dnsを記載
+ec2-54-238-31-219.ap-northeast-1.compute.amazonaws.com
 
 [mattermost:vars]
-# alb_endpoint,db_endpointはデータベースを作成毎に修正が必要です。
-alb_dns=
-db_endpoint=mattermost-dbinstance1-knqhmwcesbwm.cmx6ii0fhbpg.ap-northeast-1.rds.amazonaws.com
+# alb_dbs  ansibleの最後の処理にブラウザで開くURLを表示するだけに使ってます
+alb_dns=https://toki.jagisama.com	
+# db_endpointはデータベースを作成毎に修正が必要です。インスタンスからDBにアクセスしてユーザとデータベースを作成するときに使ってます.mattermostのconfig.jsonでも使います
+db_endpoint=mattermost-dbinstance1-hen7boztprsg.cmx6ii0fhbpg.ap-northeast-1.rds.amazonaws.com
 
 # 以下は変更不要。業務ではpasswordはansible vault等で管理が必要
 drivername=mysql
