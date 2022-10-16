@@ -76,7 +76,8 @@ Metadata: # 入力パラメータが多いとき、Metadataを使って入力し
         default: "HostedZoneId"
       EnableMultiAz:
         default: "EnableMultiAz"
-
+      SNSTopicName:
+        default: "SNSTopicName"
 # ------------------------------------------------------------#
 # Input Parameters(Instance)
 # ------------------------------------------------------------# 
@@ -210,6 +211,11 @@ Parameters:
     AllowedValues:
       - true
       - false
+  SNSTopicName:
+    Description: SNS Topic Name
+    Type: String
+    Default: arn:aws:sns:ap-northeast-1:414328432170:CloudWatch_Alarms_Test  # SNS トピック
+    
 Mappings:
   # https://dev.classmethod.jp/articles/cloudformation-ec2-build/
   prd:
@@ -876,7 +882,30 @@ Resources:
       # 検証方法はDNSを指定します。
       ValidationMethod: DNS
 
-
+#####################################################################
+# EC2 のアラーム設定
+#####################################################################
+  EC2CPUUtilizationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref SNSTopicName  # アラーム時のアクション
+      AlarmName: !Sub ${SystemName} EC2 CPU 使用率
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average  # 平均
+      Period: 60  # 期間[s]
+      EvaluationPeriods: 2  # 閾値超過回数
+      Threshold: 90  # 閾値
+      TreatMissingData: breaching  # 欠落データは不良
+      OKActions:
+        - !Ref SNSTopicName  # 復旧時のアクション
+      ComparisonOperator: GreaterThanOrEqualToThreshold  # 閾値以上
+      Dimensions:
+        - Name: InstanceId
+          Value: !Ref mattermost01EC2
+        - Name: InstanceId
+          Value: !Ref mattermost02EC2
 
 # ------------------------------------------------------------#
 # Output Parameters
