@@ -78,6 +78,8 @@ Metadata: # 入力パラメータが多いとき、Metadataを使って入力し
         default: "EnableMultiAz"
       SNSTopicName:
         default: "SNSTopicName"
+      SystemName:
+        default: "SystemName"
 # ------------------------------------------------------------#
 # Input Parameters(Instance)
 # ------------------------------------------------------------# 
@@ -215,7 +217,10 @@ Parameters:
     Description: SNS Topic Name
     Type: String
     Default: arn:aws:sns:ap-northeast-1:414328432170:CloudWatch_Alarms_Test  # SNS トピック
-    
+  SystemName:
+    Description: EnvironmentName or ServerName
+    Type: String
+    Default: mattermost  # 環境名やサーバ名を記載  
 Mappings:
   # https://dev.classmethod.jp/articles/cloudformation-ec2-build/
   prd:
