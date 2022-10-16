@@ -4,12 +4,27 @@
     name:
       - git
       - nc
+    # state: latest
+    state: present
+- name: yum install amazon-cloudwatch-agent
+  yum:
+    name:
       - amazon-cloudwatch-agent
+    # state: latest
+    state: present
+- name: yum install epel-release-latest-7.noarch.rpm
+  yum:
+    name:
       - https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    # state: latest
+    state: present
+- name: yum install collectd
+  yum:
+    name:
       - collectd
     # state: latest
     state: present
-
+    
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html
 - name: generate cloud watch config file
   copy:
