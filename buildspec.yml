@@ -1,0 +1,21 @@
+---
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - sudo apt-get update -y
+      - sudo apt-get install software-properties-common -y
+      - sudo apt-add-repository ppa:ansible/ansible -y
+      - sudo apt-get update -y
+      - sudo apt-get install ansible -y
+      - sudo apt-get install openssh-client -y
+  #     - cd ./playbook
+  #     # - chmod 600 ./ssh-keys/sw-iwamoto.pem
+  #     #  - ansible -i hosts/inventory.yml -m ping all
+  # build:
+  #   commands:
+  #     - ansible-playbook -i hosts/inventory.yml ./setup.yml
+  # post_build:
+  #   commands:
+  #     - echo "Now Finished Privisioning by Ansible"
