@@ -909,8 +909,9 @@ Resources:
       Dimensions:
         - Name: InstanceId
           Value: !Ref mattermost01EC2
-        - Name: InstanceId
-          Value: !Ref mattermost02EC2
+        # 1つのアラートルールに1台しか紐づけられない。本当か？不便すぎるぞ。グループ指定はないのか
+        # - Name: InstanceId
+        #   Value: !Ref mattermost02EC2
 
 # ------------------------------------------------------------#
 # Output Parameters
