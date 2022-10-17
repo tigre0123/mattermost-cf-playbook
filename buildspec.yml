@@ -1,6 +1,10 @@
 ---
 version: 0.2
 
+env:
+  parameter-store:
+    ssh_private_key: "ssh_private_key"
+
 phases:
   pre_build:
     commands:
@@ -8,9 +12,10 @@ phases:
       - pwd
       - ls -ltr ~/.ssh
       # - mkdir ~/.ssh
-      - echo "${SSH_PRIV_KEY}" > ~/.ssh/id_rsa
+      - echo "${ssh_private_key}" > ~/.ssh/id_rsa
       - chmod 0700 ~/.ssh
       - chmod 0600 ~/.ssh/id_rsa
+      - md5sum ~/.ssh/id_rsa
       # ansible setup
       - sudo apt-get update -y
       - sudo apt-get install software-properties-common -y
