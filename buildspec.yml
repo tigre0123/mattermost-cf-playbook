@@ -15,7 +15,7 @@ phases:
   #     #  - ansible -i hosts/inventory.yml -m ping all
   build:
     commands:
-        - ssh -vvv ec2-35-78-182-136.ap-northeast-1.compute.amazonaws.com hostname
+        - ssh -vvv -o StrictHostKeyChecking=no ec2-35-78-182-136.ap-northeast-1.compute.amazonaws.com hostname
   #     - ansible-playbook -i hosts/inventory.yml ./setup.yml
   # post_build:
   #   commands:
