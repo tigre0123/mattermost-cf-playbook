@@ -10,7 +10,6 @@ phases:
     commands:
       # ec2 private key setup
       - pwd
-      - cd mattermost-cf-playbook
       - echo "${ssh_private_key}" > ~/.ssh/id_rsa
       - ls -ltr ~/.ssh
       - chmod 0700 ~/.ssh
@@ -23,7 +22,7 @@ phases:
       - apt-get update -y
       - apt-get install ansible -y
       - apt-get install openssh-client -y
-      #  - ansible -i hosts/inventory.yml -m ping all
+      - ansible --ssh-common-args="-F ssh_config" -i -m ping all
       - ansible-playbook --version
   build:
     commands:
