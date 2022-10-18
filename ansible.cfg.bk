@@ -1,2 +1,13 @@
+# このファイルはまだ使ってません。使う場合はansible.cfgにリネームする必要あり。
+# https://github.com/jey0taka/ansible-on-codebuild/blob/master/ansible-player-repo/playbook/ansible.cfg
+[defaults]
+retry_files_enabled = False
+command_warnings = False
+
+[privilege_escalation]
+become = True
+
 [ssh_connection]
-ssh_args = -o ControlMaster=auto -o ControlPersist=60s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+control_path = %(directory)s/%%h-%%r
+ssh_args = -o ControlPersist=15m -F ssh_config -q
+scp_if_ssh = True

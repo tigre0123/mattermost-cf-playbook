@@ -23,7 +23,7 @@ phases:
       - apt-get install ansible -y
       - apt-get install openssh-client -y
       - ansible-playbook --version
-      - ansible --ssh-common-args="-F ssh_config" -m ping all
+      - ansible --ssh-common-args="-F ssh_config" -i inventories/prod -m ping all
       
   build:
     commands:
