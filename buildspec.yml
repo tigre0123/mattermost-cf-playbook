@@ -16,6 +16,7 @@ phases:
       - ls -ltr ~/.ssh
       - ls -ltr $CODEBUILD_SRC_DIR
       # ansible setup
+      # amazon linuxでansibleをインストールしようとしたらうまくいかなかったのでubuntuで妥協した
       - apt-get update -y
       - apt-get install software-properties-common -y
       - apt-add-repository ppa:ansible/ansible -y
