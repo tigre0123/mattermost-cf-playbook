@@ -18,14 +18,14 @@ phases:
       - chmod 0600 ~/.ssh/id_rsa
       - md5sum ~/.ssh/id_rsa
       # ansible setup
-      - amazon-linux-extras enable ansible2
-      - yum install -y ansible
-      # - sudo apt-get update -y
-      # - sudo apt-get install software-properties-common -y
-      # - sudo apt-add-repository ppa:ansible/ansible -y
-      # - sudo apt-get update -y
-      # - sudo apt-get install ansible -y
-      # - sudo apt-get install openssh-client -y
+      # - amazon-linux-extras enable ansible2
+      # - yum install -y ansible
+      - apt-get update -y
+      - apt-get install software-properties-common -y
+      - apt-add-repository ppa:ansible/ansible -y
+      - apt-get update -y
+      - apt-get install ansible -y
+      - apt-get install openssh-client -y
   #     - cd ./playbook
   #     # - chmod 600 ./ssh-keys/sw-iwamoto.pem
   #     #  - ansible -i hosts/inventory.yml -m ping all
