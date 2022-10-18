@@ -9,20 +9,23 @@ phases:
   pre_build:
     commands:
       # ec2 private key setup
-      - pwd
-      - ls -ltr ~/.ssh
+      # - pwd
+      # - ls -ltr ~/.ssh
       # - mkdir ~/.ssh
       - echo "${ssh_private_key}" > ~/.ssh/id_rsa
+      - ls -ltr ~/.ssh
       - chmod 0700 ~/.ssh
       - chmod 0600 ~/.ssh/id_rsa
       - md5sum ~/.ssh/id_rsa
       # ansible setup
-      - sudo apt-get update -y
-      - sudo apt-get install software-properties-common -y
-      - sudo apt-add-repository ppa:ansible/ansible -y
-      - sudo apt-get update -y
-      - sudo apt-get install ansible -y
-      - sudo apt-get install openssh-client -y
+      - amazon-linux-extras enable ansible2
+      - yum install -y ansible
+      # - sudo apt-get update -y
+      # - sudo apt-get install software-properties-common -y
+      # - sudo apt-add-repository ppa:ansible/ansible -y
+      # - sudo apt-get update -y
+      # - sudo apt-get install ansible -y
+      # - sudo apt-get install openssh-client -y
   #     - cd ./playbook
   #     # - chmod 600 ./ssh-keys/sw-iwamoto.pem
   #     #  - ansible -i hosts/inventory.yml -m ping all
@@ -30,7 +33,7 @@ phases:
   build:
     commands:
         # - ssh -vvv -o StrictHostKeyChecking=no ec2-18-183-86-230.ap-northeast-1.compute.amazonaws.com hostname
-        - ssh -vvv -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ec2-user@ec2-18-183-86-230.ap-northeast-1.compute.amazonaws.com -p 22 "pwd;ls -alF;hostname"
+        - ssh -vvv -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ec2-user@ec2-54-168-212-100.ap-northeast-1.compute.amazonaws.com -p 22 "pwd;ls -alF;hostname"
   #     - ansible-playbook -i hosts/inventory.yml ./setup.yml
   post_build:
     commands:
