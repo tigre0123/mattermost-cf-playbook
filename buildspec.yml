@@ -11,10 +11,9 @@ phases:
       # ec2 private key setup
       - pwd
       - echo "${ssh_private_key}" > ~/.ssh/id_rsa
-      - ls -ltr ~/.ssh
       - chmod 0700 ~/.ssh
       - chmod 0600 ~/.ssh/id_rsa
-      - md5sum ~/.ssh/id_rsa
+      - ls -ltr ~/.ssh
       # ansible setup
       - apt-get update -y
       - apt-get install software-properties-common -y
@@ -22,8 +21,9 @@ phases:
       - apt-get update -y
       - apt-get install ansible -y
       - apt-get install openssh-client -y
-      - ansible --ssh-common-args="-F ssh_config" -i -m ping all
       - ansible-playbook --version
+      - ansible --ssh-common-args="-F ssh_config" -m ping all
+      
   build:
     commands:
         # - ssh -vvv -o StrictHostKeyChecking=no ec2-18-183-86-230.ap-northeast-1.compute.amazonaws.com hostname
