@@ -27,7 +27,7 @@ phases:
   build:
     commands:
         # - ssh -vvv -o StrictHostKeyChecking=no ec2-18-183-86-230.ap-northeast-1.compute.amazonaws.com hostname
-        - ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ec2-user@ec2-54-168-212-100.ap-northeast-1.compute.amazonaws.com -p 22 "pwd;ls -alF;hostname"
+        # - ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ec2-user@ec2-54-168-212-100.ap-northeast-1.compute.amazonaws.com -p 22 "pwd;ls -alF;hostname"
         # - ansible-playbook -i hosts/inventory.yml ./setup.yml
         - ansible-playbook --ssh-common-args="-F ssh_config" -i inventories/prod site.yml
   post_build:
