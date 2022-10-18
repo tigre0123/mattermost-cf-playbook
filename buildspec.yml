@@ -15,6 +15,7 @@ phases:
       - chmod 0600 ~/.ssh/id_rsa
       - ls -ltr ~/.ssh
       - ls -ltr ~/
+      - ls -ltr $CODEBUILD_SRC_DIR
       # ansible setup
       - apt-get update -y
       - apt-get install software-properties-common -y
