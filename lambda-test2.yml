@@ -84,11 +84,11 @@ Resources:
       DBInstanceClass: db.t2.micro
       DBSubnetGroupName: 
         !Ref rdssubnetgroup
-      DBName: !Ref rdsdbname
+      DBName: jimbot3rds
       Engine: mysql
       EngineVersion: "5.7.34"
-      MasterUsername: !Ref rdsusername
-      MasterUserPassword: !Ref rdspassword
+      MasterUsername: jimbot3
+      MasterUserPassword: xxxxxxxx
       StorageType: gp2
       Tags:
         - Key: Name

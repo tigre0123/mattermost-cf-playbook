@@ -8,7 +8,7 @@ Resources:
       MasterUsername: jimbot3
       DBInstanceClass: db.t2.micro 
       AllocatedStorage: '20'
-      MasterUserPassword: adminadmin
+      MasterUserPassword: xxxxxxxx
       VPCSecurityGroups:
       - !GetAtt DBSecurityGroup.GroupId
 
