@@ -20,21 +20,21 @@ Parameters:
     Type: String
     Description: Enter RDS subnet groupname
 
-  rdsdbname:
-    Type: String
-    Description: Enter RDS DBname
+  # rdsdbname:
+  #   Type: String
+  #   Description: Enter RDS DBname
 
-  rdsusername:
-    Type: String
-    Description: Enter RDS username
-    AllowedPattern: '[a-zA-Z0-9]*'
+  # rdsusername:
+  #   Type: String
+  #   Description: Enter RDS username
+  #   AllowedPattern: '[a-zA-Z0-9]*'
 
-  rdspassword: 
-    Type: String
-    Description: Enter RDS password
-    MinLength: '8'
-    MaxLength: '41'
-    AllowedPattern: '[a-zA-Z0-9]*'
+  # rdspassword: 
+  #   Type: String
+  #   Description: Enter RDS password
+  #   MinLength: '8'
+  #   MaxLength: '41'
+  #   AllowedPattern: '[a-zA-Z0-9]*'
 
 #リソース
 Resources:
