@@ -1014,7 +1014,7 @@ Resources:
       Code:
         S3Bucket: !Ref "S3BucketName"
         S3Key: myfunction.zip
-      FunctionName: "myfunction"
+      FunctionName: "myfunction2222"
       # Handler: myfunction.lambda_handler
       # Lambdaがコードを実行する際に呼び出す関数名"
       Handler: lambda_function.lambda_handler
