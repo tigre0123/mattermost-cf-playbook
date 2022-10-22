@@ -691,11 +691,14 @@ Resources:
       SecurityGroupIngress:
       # - CidrIp: 0.0.0.0/0
       # https://qiita.com/yz2cm/items/2448f1545fef406ce8e3
-      - SourceSecurityGroupId: !Ref mattermostSecurityGroupSERVER
+      # ec2からのアクセスに限定する場合の設定
+      # - SourceSecurityGroupId: !Ref mattermostSecurityGroupSERVER
+      # VPC内からのアクセスに限定する場合の設定。VPC内にいるlambdaも許可する必要があったので、このようにした。
+      - CidrIp: !GetAtt "VPC.CidrBlock"
         FromPort: 3306
         IpProtocol: tcp
         ToPort: 3306
-        Description: "tcp from ec2 to rds"
+        Description: "tcp from ec2 and lambda to rds"
       VpcId: !Ref VPC
       Tags:
       - Key: Name
