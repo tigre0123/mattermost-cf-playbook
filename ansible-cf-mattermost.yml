@@ -233,8 +233,8 @@ Parameters:
   S3BucketName:
     Description: Please enter the S3 bucket name.
     Type: String
-    Default: arn:aws:s3:::cfn-lambda-mattermost
-
+    # Default: arn:aws:s3:::cfn-lambda-mattermost
+    Default: cfn-lambda-mattermost
 
 Mappings:
   # https://dev.classmethod.jp/articles/cloudformation-ec2-build/
