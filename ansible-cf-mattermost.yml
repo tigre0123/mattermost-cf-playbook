@@ -999,6 +999,7 @@ Resources:
   LambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
+      # lambdaの環境変数にDBの接続情報が設定される。
       Environment:
         Variables:
           DB_PORT: '3306'
@@ -1020,9 +1021,9 @@ Resources:
       Code:
         S3Bucket: !Ref "S3BucketName"
         S3Key: myfunction.zip
-      FunctionName: "myfunction2222"
+      FunctionName: "mattermost-create-initdata"
       # Handler: myfunction.lambda_handler
-      # Lambdaがコードを実行する際に呼び出す関数名"
+      # Lambdaがコードを実行する際に呼び出す関数名"。lambda_functionはファイル名
       Handler: lambda_function.lambda_handler
       Runtime: python3.9
       Role: !GetAtt IAMRoleForLambdaFunction.Arn #Lambda実行権限とAuroraの操作権限を付与したIAM
@@ -1035,7 +1036,16 @@ Resources:
           - !Ref PublicSubnetA
           - !Ref PublicSubnetC
 
-
+  # これがないとlambdaが実行されない。つまり手動で実行しないと動いてくれない
+  # 実行するリソースはないようです。なのでこれは自作するリソースとなります。
+  Execlambda: 
+    Type: "Custom::ExcuteLambda"
+    Version: "1.0"
+    Properties: 
+      # ServiceToken: LambdaFunction #ここにLambdaのARNを入力します
+      ServiceToken: !GetAtt LambdaFunction.Arn
+      RequestType: Create
+    DependsOn: DBInstance1
 
 # ------------------------------------------------------------#
 # Output Parameters
