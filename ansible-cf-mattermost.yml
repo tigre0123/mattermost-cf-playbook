@@ -1015,7 +1015,7 @@ Resources:
         S3Bucket: !Ref "S3BucketName"
         S3Key: myfunction.zip
       FunctionName: "myfunction"
-      Handler: index.lambda_handler
+      Handler: myfunction.lambda_handler
       Runtime: python3.9
       Role: !GetAtt IAMRoleForLambdaFunction.Arn #Lambda実行権限とAuroraの操作権限を付与したIAM
       Timeout: 10
