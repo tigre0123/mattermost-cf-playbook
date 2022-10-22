@@ -1036,8 +1036,9 @@ Resources:
           - !Ref PublicSubnetA
           - !Ref PublicSubnetC
 
-  # これがないとlambdaが実行されない。つまり手動で実行しないと動いてくれない
-  # 実行するリソースはないようです。なのでこれは自作するリソースとなります。
+  # これがないとlambdaが実行されない。その場合、手動で実行しないと動いてくれない
+  # 実行するリソースはないようです。なのでこれは自作するリソースとなります。 
+  # https://dev.classmethod.jp/articles/cfn-api-custom/
   Execlambda: 
     Type: "Custom::ExcuteLambda"
     Version: "1.0"
