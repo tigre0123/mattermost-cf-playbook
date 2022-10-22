@@ -225,11 +225,10 @@ Parameters:
 # ------------------------------------------------------------#
 # Input Parameters(lambda)
 # ------------------------------------------------------------# 
-  # テストデータcsvを使わわないので不要と予想
-  # TestDataS3BucketArn:
-  #   Description: Please enter the ARN of the S3 bucket where the files to be imported into the Aurora database are stored.
-  #   Type: String
-  #   Default: arn:aws:s3:::bucket-name
+  TestDataS3BucketArn:
+    Description: Please enter the ARN of the S3 bucket where the files to be imported into the Aurora database are stored.
+    Type: String
+    Default: arn:aws:s3:::cfn-lambda-mattermost
 
   S3BucketName:
     Description: Please enter the S3 bucket name.
@@ -938,7 +937,8 @@ Resources:
   TestSecurityGroupForLambda:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: !Ref "TestVPC"
+      # VpcId: !Ref "TestVPC"
+      VpcId: !Ref VPC
       GroupDescription: Allow MySQL (TCP3306)
       Tags:
         - Key: Name
