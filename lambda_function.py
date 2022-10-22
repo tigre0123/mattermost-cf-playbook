@@ -21,7 +21,7 @@ def lambda_handler(event, context):
   with conn.cursor() as cur:
 
     #CreateTableコマンドは、mysqlの通常のコマンドと同じ。
-    cur.execute("create table service (system_id varchar(255),name varchar(255),url varchar(2048),PRIMARY KEY (system_id))")
+    # cur.execute("create table service (system_id varchar(255),name varchar(255),url varchar(2048),PRIMARY KEY (system_id))")
     cur.execute("create user 'mmuser'@'%' identified by 'adminadmin'")
     cur.execute("create database mattermost")
     cur.execute("grant all privileges on mattermost.* to 'mmuser'@'%'")
