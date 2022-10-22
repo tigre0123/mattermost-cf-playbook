@@ -18,8 +18,10 @@ db_endpoint=mattermost-dbinstance1-vrgbwhmzl76n.cmx6ii0fhbpg.ap-northeast-1.rds.
 # alb_dbs  ansibleの最後の処理にブラウザで開くURLを表示するだけに使ってます.変数名はおかしい
 alb_dns=https://toki.jagisama.com	
 drivername=mysql
+# dbのrootユーザの設定
 db_master_user=admin
 db_master_password=adminadmin
+# dbのmastermostユーザの設定
 mattermost_user=mmuser
 mattermost_password=adminadmin
 mattermost_dbname=mattermost

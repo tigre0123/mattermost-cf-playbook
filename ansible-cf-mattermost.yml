@@ -220,7 +220,23 @@ Parameters:
   SystemName:
     Description: EnvironmentName or ServerName
     Type: String
-    Default: mattermost  # 環境名やサーバ名を記載  
+    Default: mattermost  # 環境名やサーバ名を記載
+    
+# ------------------------------------------------------------#
+# Input Parameters(lambda)
+# ------------------------------------------------------------# 
+  # テストデータcsvを使わわないので不要と予想
+  # TestDataS3BucketArn:
+  #   Description: Please enter the ARN of the S3 bucket where the files to be imported into the Aurora database are stored.
+  #   Type: String
+  #   Default: arn:aws:s3:::bucket-name
+
+  S3BucketName:
+    Description: Please enter the S3 bucket name.
+    Type: String
+    Default: arn:aws:s3:::cfn-lambda-mattermost
+
+
 Mappings:
   # https://dev.classmethod.jp/articles/cloudformation-ec2-build/
   prd:
@@ -241,6 +257,7 @@ Mappings:
       InstanceType: t2.micro
       # AmiId: ami-08a8688fb7eacb171 # Amazon Linux 2 AMI (HVM) - Kernel 5.10, SSD Volume Type
       Playbook: "mattermost.yml"
+  
 
 Conditions:
   # isBrandNewDB: !Equals [ !Ref DBSnapshotArn, "" ]
@@ -690,6 +707,7 @@ Resources:
       Description: DBCluster
       Family: aurora-mysql5.7
       Parameters:
+        aws_default_s3_role: !GetAtt RDSS3AccessRole.Arn #LOAD DATA FROM S3コマンドを実行し、S3のファイルを読み込むためのIAM role。超重要。
         time_zone: Asia/Tokyo
   DBCluster:
     Type: AWS::RDS::DBCluster
@@ -912,6 +930,104 @@ Resources:
         # 1つのアラートルールに1台しか紐づけられない。本当か？不便すぎるぞ。グループ指定はないのか
         # - Name: InstanceId
         #   Value: !Ref mattermost02EC2
+
+
+#####################################################################
+# lambda の設定
+#####################################################################
+  TestSecurityGroupForLambda:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref "TestVPC"
+      GroupDescription: Allow MySQL (TCP3306)
+      Tags:
+        - Key: Name
+          Value: TestSecurityGroupForLambda
+
+  #AuroraがS3にアクセスするために必要なIAMロールの設定
+  RDSS3AccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AllowS3Access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                Resource:
+                  - !Sub '${TestDataS3BucketArn}'
+                  - !Sub '${TestDataS3BucketArn}/*'
+
+  #Lambda実行権限とAuroraの操作権限を付与したIAMロールの設定
+  IAMRoleForLambdaFunction:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        - arn:aws:iam::aws:policy/AmazonRDSFullAccess
+      MaxSessionDuration: 3600
+      Path: "/"
+      RoleName: "RDSFullAccessLambdaExecRole"
+
+
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Environment:
+        Variables:
+          DB_PORT: '3306'
+          # DB_NAME: !FindInMap [Constant, RDS, DatabaseName]
+          DB_NAME: db
+          # DB_PASSWORD: !Ref "DBMasterUserPassword"
+          DB_PASSWORD: !Ref DBMasterUserPassword
+          DB_WRITER_ENDPOINT_ADDRESS: !GetAtt DBCluster.Endpoint.Address #Auroraのライターエンドポイントを設定している
+          # DB_USER: !Ref "DBMasterUserName"
+          DB_USER: !Ref DBMasterUserName
+      # DBClusterIdentifier: dbcluster
+      # DBClusterParameterGroupName: !Ref DBClusterParameterGroup
+      # DBSubnetGroupName: !Ref DBSubnetGroup
+      # DatabaseName: db
+      # Engine: aurora-mysql
+      # EngineVersion: !Ref EngineVersion
+      # MasterUserPassword: !Ref DBMasterUserPassword
+      # MasterUsername: !Ref DBMasterUserName
+      Code:
+        S3Bucket: !Ref "S3BucketName"
+        S3Key: myfunction.zip
+      FunctionName: "myfunction"
+      Handler: index.lambda_handler
+      Runtime: python3.9
+      Role: !GetAtt IAMRoleForLambdaFunction.Arn #Lambda実行権限とAuroraの操作権限を付与したIAM
+      Timeout: 10
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref TestSecurityGroupForLambda
+        SubnetIds:
+          # - !Ref TestPrivateSub1a
+          - !Ref PublicSubnetA
+          - !Ref PublicSubnetC
+
+
 
 # ------------------------------------------------------------#
 # Output Parameters
