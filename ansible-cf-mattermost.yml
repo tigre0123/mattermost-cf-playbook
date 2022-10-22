@@ -741,6 +741,9 @@ Resources:
       Tags:
       - Key: Name
         Value: mattermost-master
+    # DB削除が早くなるかテスト中
+    # https://dev.classmethod.jp/articles/dont-create-snapshot-for-rds-dbinstance-on-stack-deletion-in-cfn/
+    DeletionPolicy: Delete
 
   DBInstance2:
     Type: AWS::RDS::DBInstance
