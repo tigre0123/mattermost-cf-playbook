@@ -1,7 +1,51 @@
-import boto3
+from __future__ import print_function
+import urllib3
 import json
-import pymysql.cursors
 import os
+import boto3
+import pymysql.cursors
+
+SUCCESS = "SUCCESS"
+FAILED = "FAILED"
+
+http = urllib3.PoolManager()
+
+# https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/cfn-lambda-function-code-cfnresponsemodule.html
+def send(event, context, responseStatus, responseData, physicalResourceId=None, noEcho=False, reason=None):
+    responseUrl = event['ResponseURL']
+
+    print(responseUrl)
+
+    responseBody = {
+        'Status' : responseStatus,
+        'Reason' : reason or "See the details in CloudWatch Log Stream: {}".format(context.log_stream_name),
+        'PhysicalResourceId' : physicalResourceId or context.log_stream_name,
+        'StackId' : event['StackId'],
+        'RequestId' : event['RequestId'],
+        'LogicalResourceId' : event['LogicalResourceId'],
+        'NoEcho' : noEcho,
+        'Data' : responseData
+    }
+
+    json_responseBody = json.dumps(responseBody)
+
+    print("Response body:")
+    print(json_responseBody)
+
+    headers = {
+        'content-type' : '',
+        'content-length' : str(len(json_responseBody))
+    }
+
+    try:
+        response = http.request('PUT', responseUrl, headers=headers, body=json_responseBody)
+        print("Status code:", response.status)
+
+
+    except Exception as e:
+
+        print("send(..) failed executing http.request(..):", e)
+
 
 def lambda_handler(event, context):
   
@@ -21,7 +65,7 @@ def lambda_handler(event, context):
   with conn.cursor() as cur:
 
     #CreateTableコマンドは、mysqlの通常のコマンドと同じ。
-    # cur.execute("create table service (system_id varchar(255),name varchar(255),url varchar(2048),PRIMARY KEY (system_id))")
+    #cur.execute("create table service (system_id varchar(255),name varchar(255),url varchar(2048),PRIMARY KEY (system_id))")
     cur.execute("create user 'mmuser'@'%' identified by 'adminadmin'")
     cur.execute("create database mattermost")
     cur.execute("grant all privileges on mattermost.* to 'mmuser'@'%'")
@@ -45,7 +89,7 @@ def lambda_handler(event, context):
     # cur.execute("select * from service")
     # for row in cur:
     #   print(row)
-  
-  return {
-    'statusCode': 200
-  }
+  send(event, context, SUCCESS, {})
+  # return {
+  #   'statusCode': 200
+  # }
