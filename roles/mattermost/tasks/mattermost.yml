@@ -74,26 +74,26 @@
     group: mattermost
     mode: 0644
 
-- name: generate database setup script from template
-  template:
-    src: init_db.sh.j2
-    dest: /opt/mattermost/init_db.sh
-    owner: mattermost
-    group: mattermost
-    mode: 0755
+# - name: generate database setup script from template
+#   template:
+#     src: init_db.sh.j2
+#     dest: /opt/mattermost/init_db.sh
+#     owner: mattermost
+#     group: mattermost
+#     mode: 0755
 
-# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/stat_module.html
-- name: initial-db-setup-confirm
-  stat:
-    path: /opt/mattermost/.init_db.done
-  register: db_result # 存在していればdb_resultという変数にTrueを、存在していなければFalseを格納します。
+# # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/stat_module.html
+# - name: initial-db-setup-confirm
+#   stat:
+#     path: /opt/mattermost/.init_db.done
+#   register: db_result # 存在していればdb_resultという変数にTrueを、存在していなければFalseを格納します。
 
-# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/shell_module.html
-- name: execute init_db.sh
-  shell: |
-    bash /opt/mattermost/init_db.sh
-    touch /opt/mattermost/.init_db.done
-  when: not db_result.stat.exists # resultがFalseの場合のみ処理を実行します。init_db.shを１回だけ実行するためのフラグです。
+# # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/shell_module.html
+# - name: execute init_db.sh
+#   shell: |
+#     bash /opt/mattermost/init_db.sh
+#     touch /opt/mattermost/.init_db.done
+#   when: not db_result.stat.exists # resultがFalseの場合のみ処理を実行します。init_db.shを１回だけ実行するためのフラグです。
 
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html
 - name: generate mattermost.service file

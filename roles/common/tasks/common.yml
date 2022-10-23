@@ -24,7 +24,7 @@
       - collectd
     # state: latest
     state: present
-    
+
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html
 - name: generate cloud watch config file
   copy:
