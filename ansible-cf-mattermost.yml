@@ -679,8 +679,10 @@ Resources:
       DBSubnetGroupDescription: DBSubnetGroup
       DBSubnetGroupName: dbsubnetgroup
       SubnetIds: # 指定は2つ必要
-      - !Ref PublicSubnetA
-      - !Ref PublicSubnetC
+      # - !Ref PublicSubnetA
+      # - !Ref PublicSubnetC
+      - !Ref PrivateSubnetA
+      - !Ref PrivateSubnetC
       Tags:
       - Key: Name
         Value: dbsubnetgroup
