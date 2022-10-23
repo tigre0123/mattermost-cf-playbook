@@ -84,12 +84,12 @@ def lambda_handler(event, context):
     conn.commit()
     
     #インポートした結果はこちらのselect文で確認する。
-    cur.execute("select user, host from mysql.user")
-    cur.execute("show databases")
+    # cur.execute("select user, host from mysql.user")
+    # cur.execute("show databases")
     # cur.execute("select * from service")
     # for row in cur:
     #   print(row)
-  send(event, context, SUCCESS, {})
-  # return {
-  #   'statusCode': 200
-  # }
+  # send(event, context, SUCCESS, {})
+  return {
+    'statusCode': 200
+  }
