@@ -89,6 +89,7 @@ def lambda_handler(event, context):
     # cur.execute("select * from service")
     # for row in cur:
     #   print(row)
+  # うまくいかないのでcfnからの実行は諦める
   # send(event, context, SUCCESS, {})
   return {
     'statusCode': 200
