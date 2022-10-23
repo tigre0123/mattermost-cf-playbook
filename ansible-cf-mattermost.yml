@@ -1018,13 +1018,48 @@ Resources:
       # EngineVersion: !Ref EngineVersion
       # MasterUserPassword: !Ref DBMasterUserPassword
       # MasterUsername: !Ref DBMasterUserName
+      
+      # Code:
+      #   S3Bucket: !Ref "S3BucketName"
+      #   S3Key: myfunction.zip
       Code:
-        S3Bucket: !Ref "S3BucketName"
-        S3Key: myfunction.zip
+        ZipFile: |
+          import cfnresponse
+
+          def lambda_handler(event, context):
+              
+              if event['RequestType'] == 'Create':
+                  
+                  DB_NAME = os.environ["DB_NAME"]
+                  DB_USER = os.environ["DB_USER"]
+                  DB_PASSWORD = os.environ["DB_PASSWORD"]
+                  DB_WRITER_ENDPOINT_ADDRESS = os.environ["DB_WRITER_ENDPOINT_ADDRESS"]
+                    
+                  conn = pymysql.connect(host=DB_WRITER_ENDPOINT_ADDRESS, user=DB_USER, passwd=DB_PASSWORD, db=DB_NAME, connect_timeout=5)
+                  with conn.cursor() as cur:
+
+                    cur.execute("create user 'mmuser'@'%' identified by 'adminadmin'")
+                    cur.execute("create database mattermost")
+                    cur.execute("grant all privileges on mattermost.* to 'mmuser'@'%'")
+                    conn.commit() 
+
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS,
+                                      {'Response': 'Success'})
+
+              if event['RequestType'] == 'Delete':
+                 
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS,
+                                      {'Response': 'Success'})
+              if event['RequestType'] == 'Update':
+                  
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS,
+                                      {'Response': 'Success'})
+                                      
       FunctionName: "mattermost-create-initdata"
       # Handler: myfunction.lambda_handler
       # Lambdaがコードを実行する際に呼び出す関数名"。lambda_functionはファイル名
-      Handler: lambda_function.lambda_handler
+      # Handler: lambda_function.lambda_handler
+      Handler: index.lambda_handler
       Runtime: python3.9
       Role: !GetAtt IAMRoleForLambdaFunction.Arn #Lambda実行権限とAuroraの操作権限を付与したIAM
       Timeout: 10
@@ -1039,14 +1074,14 @@ Resources:
   # これがないとlambdaが実行されない。その場合、手動で実行しないと動いてくれない
   # 実行するリソースはないようです。なのでこれは自作するリソースとなります。 
   # https://dev.classmethod.jp/articles/cfn-api-custom/
-  # Execlambda: 
-  #   Type: "Custom::ExcuteLambda"
-  #   Version: "1.0"
-  #   Properties: 
-  #     # ServiceToken: LambdaFunction #ここにLambdaのARNを入力します
-  #     ServiceToken: !GetAtt LambdaFunction.Arn
-  #     RequestType: Create
-  #   DependsOn: DBInstance1
+  Execlambda: 
+    Type: "Custom::ExcuteLambda"
+    Version: "1.0"
+    Properties: 
+      # ServiceToken: LambdaFunction #ここにLambdaのARNを入力します
+      ServiceToken: !GetAtt LambdaFunction.Arn
+      RequestType: Create
+    DependsOn: DBInstance1
 
 # ------------------------------------------------------------#
 # Output Parameters
