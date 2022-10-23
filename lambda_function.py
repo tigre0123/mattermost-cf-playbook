@@ -9,7 +9,7 @@ SUCCESS = "SUCCESS"
 FAILED = "FAILED"
 
 http = urllib3.PoolManager()
-
+# https://zenn.dev/fffukken/articles/86325ec0db0205
 # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/cfn-lambda-function-code-cfnresponsemodule.html
 def send(event, context, responseStatus, responseData, physicalResourceId=None, noEcho=False, reason=None):
     responseUrl = event['ResponseURL']

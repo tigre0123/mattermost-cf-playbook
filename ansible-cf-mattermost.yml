@@ -1039,14 +1039,14 @@ Resources:
   # これがないとlambdaが実行されない。その場合、手動で実行しないと動いてくれない
   # 実行するリソースはないようです。なのでこれは自作するリソースとなります。 
   # https://dev.classmethod.jp/articles/cfn-api-custom/
-  Execlambda: 
-    Type: "Custom::ExcuteLambda"
-    Version: "1.0"
-    Properties: 
-      # ServiceToken: LambdaFunction #ここにLambdaのARNを入力します
-      ServiceToken: !GetAtt LambdaFunction.Arn
-      RequestType: Create
-    DependsOn: DBInstance1
+  # Execlambda: 
+  #   Type: "Custom::ExcuteLambda"
+  #   Version: "1.0"
+  #   Properties: 
+  #     # ServiceToken: LambdaFunction #ここにLambdaのARNを入力します
+  #     ServiceToken: !GetAtt LambdaFunction.Arn
+  #     RequestType: Create
+  #   DependsOn: DBInstance1
 
 # ------------------------------------------------------------#
 # Output Parameters
