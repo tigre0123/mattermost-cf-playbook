@@ -719,7 +719,8 @@ Resources:
       DBClusterIdentifier: dbcluster
       DBClusterParameterGroupName: !Ref DBClusterParameterGroup
       DBSubnetGroupName: !Ref DBSubnetGroup
-      DatabaseName: db
+      # DatabaseName: db
+      DatabaseName: !Ref DBName
       Engine: aurora-mysql
       EngineVersion: !Ref EngineVersion
       MasterUserPassword: !Ref DBMasterUserPassword
@@ -1005,8 +1006,9 @@ Resources:
       Environment:
         Variables:
           DB_PORT: '3306'
-          # DB_NAME: !FindInMap [Constant, RDS, DatabaseName]
-          DB_NAME: db
+          # DB_NAME: !FindInMap [Constant, RDS, DatabaseName] 
+          # DB_NAME: db
+          DB_NAME: !Ref DBName
           DB_PASSWORD: !Ref DBMasterUserPassword
           DB_WRITER_ENDPOINT_ADDRESS: !GetAtt DBCluster.Endpoint.Address #Auroraのライターエンドポイントを設定している
           DB_USER: !Ref DBMasterUserName
