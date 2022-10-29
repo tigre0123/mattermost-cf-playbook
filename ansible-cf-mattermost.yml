@@ -1030,7 +1030,7 @@ Resources:
           # - !Ref TestPrivateSub1a
           # - !Ref PublicSubnetA
           # - !Ref PublicSubnetC
-PrivateSubnetA
+
   # これがないとlambdaが実行されない。その場合、手動で実行しないと動いてくれない
   # 実行するリソースはないようです。なのでこれは自作するリソースとなります。 
   # https://dev.classmethod.jp/articles/cfn-api-custom/
