@@ -131,20 +131,20 @@ Parameters:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
 
-  GitHubOwner:
-    Description: ansible playbook GitHubOwner
-    Type: String
-    Default: "tmoritoki0227"
+  # GitHubOwner:
+  #   Description: ansible playbook GitHubOwner
+  #   Type: String
+  #   Default: "tmoritoki0227"
 
-  GitHubRepo:
-    Description: ansible playbook GitHubRepo
-    Type: String
-    Default: "mattermost-cf-playbook"
+  # GitHubRepo:
+  #   Description: ansible playbook GitHubRepo
+  #   Type: String
+  #   Default: "mattermost-cf-playbook"
 
-  GitHubBranch:
-    Description: ansible playbook GitHubBranch
-    Type: String
-    Default: "main"
+  # GitHubBranch:
+  #   Description: ansible playbook GitHubBranch
+  #   Type: String
+  #   Default: "main"
 # ------------------------------------------------------------#
 # Input Parameters(DB)
 # ------------------------------------------------------------# 
@@ -157,7 +157,7 @@ Parameters:
   DBInstanceStorageType:
     Type: String
     Default: "gp2"
-  DBName:
+  DBName: # 最初に作成されるデータベース名です
     Type: String
     Default: "mattermost"
   DBMasterUserName:
@@ -1025,10 +1025,12 @@ Resources:
         SecurityGroupIds:
           - !Ref TestSecurityGroupForLambda
         SubnetIds:
+          - !Ref PrivateSubnetA
+          - !Ref PrivateSubnetC
           # - !Ref TestPrivateSub1a
-          - !Ref PublicSubnetA
-          - !Ref PublicSubnetC
-
+          # - !Ref PublicSubnetA
+          # - !Ref PublicSubnetC
+PrivateSubnetA
   # これがないとlambdaが実行されない。その場合、手動で実行しないと動いてくれない
   # 実行するリソースはないようです。なのでこれは自作するリソースとなります。 
   # https://dev.classmethod.jp/articles/cfn-api-custom/
