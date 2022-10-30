@@ -66,6 +66,7 @@
 #     owner: mattermost
 #     group: mattermost
 #     mode: '0664'
+# test
 
 # https://docs.ansible.com/ansible/2.9_ja/modules/template_module.html#template-module
 - name: generate mattermost config file from template
