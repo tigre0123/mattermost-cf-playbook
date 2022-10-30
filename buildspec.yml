@@ -24,6 +24,10 @@ phases:
       - apt-get install ansible -y
       - apt-get install openssh-client -y
       - ansible-playbook --version
+      # cloudformationのコードチェック
+      - aws cloudformation validate-template --template-body file://ansible-cf-mattermost.yml
+      # ansibleのコードチェック
+      - ansible-lint site.yml
       - ansible --ssh-common-args="-F ssh_config" -i inventories/prod -m ping all
       
   build:
