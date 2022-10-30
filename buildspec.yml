@@ -15,7 +15,7 @@ phases:
       - chmod 0600 ~/.ssh/id_rsa
       - ls -ltr ~/.ssh
       - ls -ltr $CODEBUILD_SRC_DIR
-      - which aws --version
+      - which aws
       - aws --version
       - df -h
       - sh cfn_template_check
