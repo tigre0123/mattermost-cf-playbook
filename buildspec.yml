@@ -15,6 +15,7 @@ phases:
       - chmod 0600 ~/.ssh/id_rsa
       - ls -ltr ~/.ssh
       - ls -ltr $CODEBUILD_SRC_DIR
+      - which aws --version
       # ansible setup
       # amazon linuxでansibleをインストールしようとしたらうまくいかなかったのでubuntuで妥協した
       - apt-get update -y
@@ -30,6 +31,7 @@ phases:
       # - aws cloudformation validate-template --template-body file://ansible-cf-mattermost.yml
       # ansibleのコードチェック
       - ansible-lint site.yml
+      # EC2の起動チェック。pingの応答を確認する。
       - ansible --ssh-common-args="-F ssh_config" -i inventories/prod -m ping all
       
   build:
