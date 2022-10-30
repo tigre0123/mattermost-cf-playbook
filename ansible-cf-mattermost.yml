@@ -112,6 +112,7 @@ Parameters:
   KeyName: # 自分の秘密鍵を画面で選択することになる.対応した公開鍵がサーバに配布される
     Description: The EC2 Key Pair to allow SSH access to the instance
     Type: "AWS::EC2::KeyPair::KeyName"
+    # 修正箇所
     Default: "rsa"
 
   MyIP: # awsへアクセスするIPを設定
@@ -182,12 +183,15 @@ Parameters:
     AllowedValues: [ "true", "false" ]
   DomainName:
     Type: String
+    # 修正箇所
     Default: "*.jagisama.com"
   SubDomainName:
     Type: String
+    # 修正箇所
     Default: "toki.jagisama.com"
   HostedZoneId: # ホストゾーンのIDです。手動で事前に作成しておく必要があります。自動化不可
     Type: String
+    # 修正箇所
     Default: "Z085281613VEN9LFDFEPX"
     
   # DBMasterUserName:
@@ -228,12 +232,13 @@ Parameters:
   TestDataS3BucketArn:
     Description: Please enter the ARN of the S3 bucket where the files to be imported into the Aurora database are stored.
     Type: String
+    # 修正箇所
     Default: arn:aws:s3:::cfn-lambda-mattermost
 
   S3BucketName:
     Description: Please enter the S3 bucket name.
     Type: String
-    # Default: arn:aws:s3:::cfn-lambda-mattermost
+    # 修正箇所
     Default: cfn-lambda-mattermost
 
 Mappings:
