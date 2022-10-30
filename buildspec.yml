@@ -16,8 +16,9 @@ phases:
       - ls -ltr ~/.ssh
       - ls -ltr $CODEBUILD_SRC_DIR
       - which aws --version
+      - aws --version
       - df -h
-      - sh cfn_template_check.sh
+      - sh cfn_template_check
       # ansible setup
       # amazon linuxでansibleをインストールしようとしたらうまくいかなかったのでubuntuで妥協した
       - apt-get update -y
