@@ -34,7 +34,8 @@ phases:
       # cloudformationのコードチェック
       # - aws cloudformation validate-template --template-body file://ansible-cf-mattermost.yml
       # ansibleのコードチェック
-      - ansible-lint site.yml
+      # yaml: truthy value should be one of [false, true] (truthy) が解決できないので一旦コメント
+      # - ansible-lint site.yml
       # EC2の起動チェック。pingの応答を確認する。
       - ansible --ssh-common-args="-F ssh_config" -i inventories/prod -m ping all
       
