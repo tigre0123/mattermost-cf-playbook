@@ -24,12 +24,11 @@ phases:
       - apt-get update -y
       - apt-get install software-properties-common -y
       - apt-add-repository ppa:ansible/ansible -y
-      - apt-get update -y
-      - apt-get install ansible=2.9.6+dfsg-1 -y
+      - apt-get install ansible -y
       - ansible  --version
       - apt-get install openssh-client -y
       - ansible-playbook --version
-      - apt install ansible-lint=4.2.0-1 -y
+      - apt install ansible-lint -y
       - ansible-lint --version
       # cloudformationのコードチェック
       # - aws cloudformation validate-template --template-body file://ansible-cf-mattermost.yml
