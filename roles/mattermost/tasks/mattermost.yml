@@ -113,8 +113,8 @@
     daemon_reload: true
     # daemon_reload: yes
     state: restarted
-    enabled: yes
-    # enabled: true
+    # enabled: yes
+    enabled: true
 
 # https://docs.ansible.com/ansible/latest/collections/netapp/ontap/na_ontap_debug_module.html
 - name: Setup is complete
