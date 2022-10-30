@@ -16,7 +16,8 @@
   unarchive:
     src: /tmp/mattermost-7.0.1-linux-amd64.tar.gz
     dest: /opt   # /opt/mattermost ができる
-    remote_src: yes
+    # remote_src: yes
+    remote_src: true
   when: not result.stat.exists # resultがFalseの場合のみ処理を実行します。
 
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/group_module.html
@@ -29,7 +30,8 @@
   user:
     name: mattermost
     group: mattermost
-    create_home: no
+    create_home: false
+    # create_home: no
 
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/file_module.html
 - name: mattermost directory permission
@@ -39,7 +41,8 @@
     owner: mattermost
     group: mattermost
     mode: '775'
-    recurse: yes
+    recurse: true
+    # recurse: yes
 
 - name: mattermost data directory created
   file:
@@ -107,9 +110,11 @@
 - name: mattermost.service restart
   systemd:
     name: mattermost
-    daemon_reload: yes
+    daemon_reload: true
+    # daemon_reload: yes
     state: restarted
     enabled: yes
+    # enabled: true
 
 # https://docs.ansible.com/ansible/latest/collections/netapp/ontap/na_ontap_debug_module.html
 - name: Setup is complete
