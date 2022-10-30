@@ -2,7 +2,8 @@
 - name: deploy mattermost server
   remote_user: ec2-user
   hosts: all
-  become: yes
+  # become: yes
+  become: true
   roles:
     - role: common
       tags: common

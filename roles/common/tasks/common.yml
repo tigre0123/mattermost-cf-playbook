@@ -38,6 +38,8 @@
 - name: cloud watch restart
   systemd:
     name: amazon-cloudwatch-agent
-    daemon_reload: yes
+    # daemon_reload: yes
+    daemon_reload: true
     state: restarted
-    enabled: yes
+    enabled: true
+    #enabled: yes
