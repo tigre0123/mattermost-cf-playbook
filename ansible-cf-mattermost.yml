@@ -1019,7 +1019,7 @@ Resources:
           DB_USER: !Ref DBMasterUserName
       Code:
         S3Bucket: !Ref "S3BucketName"
-        S3Key: myfunction.zip           
+        S3Key: mattermost-create-initdata.zip           
       FunctionName: "mattermost-create-initdata"
       # Lambdaがコードを実行する際に呼び出す関数名"。lambda_functionはファイル名
       Handler: lambda_function.lambda_handler
