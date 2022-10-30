@@ -24,6 +24,8 @@ phases:
       - apt-get install ansible -y
       - apt-get install openssh-client -y
       - ansible-playbook --version
+      - apt install ansible-lint
+      - ansible-lint --version
       # cloudformationのコードチェック
       # - aws cloudformation validate-template --template-body file://ansible-cf-mattermost.yml
       # ansibleのコードチェック
