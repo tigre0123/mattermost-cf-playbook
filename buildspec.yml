@@ -18,7 +18,7 @@ phases:
       - which aws
       - aws --version
       - df -h
-      - sh cfn_template_check
+      - sh cfn_template_check.sh
       # ansible setup
       # amazon linuxでansibleをインストールしようとしたらうまくいかなかったのでubuntuで妥協した
       - apt-get update -y
