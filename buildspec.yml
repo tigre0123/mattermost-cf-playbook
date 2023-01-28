@@ -16,7 +16,7 @@ phases:
       - chmod 0600 ~/.ssh/id_rsa
       - ls -ltr ~/.ssh
       - md5sum ~/.ssh/id_rsa
-      - tail -n 5 id_rsa
+      - tail -n 5 ~/.ssh/id_rsa
       - ls -ltr $CODEBUILD_SRC_DIR
       - which aws
       - aws --version
